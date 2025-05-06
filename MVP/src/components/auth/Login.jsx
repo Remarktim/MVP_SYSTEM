@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
 import { useAuth } from "../../contexts/AuthContext";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ const Login = () => {
   const [error, setError] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -42,6 +44,11 @@ const Login = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    setShowForgotPasswordModal(true);
   };
 
   return (
@@ -144,11 +151,12 @@ const Login = () => {
                   </label>
                 </div>
                 <div className="text-sm">
-                  <a
-                    href="/forgot-password"
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
                     className="text-indigo-600 hover:underline font-semibold">
                     Forgot your password?
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -173,6 +181,13 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+        initialEmail={email} // Pre-fill with the email from login form if available
+      />
     </div>
   );
 };

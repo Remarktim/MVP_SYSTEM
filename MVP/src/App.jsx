@@ -5,6 +5,7 @@ import Signup from "./components/auth/Signup";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import ResetPassword from "./pages/ResetPassword";
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -50,6 +51,10 @@ function App() {
           <Route
             path="/signup"
             element={<Signup />}
+          />
+          <Route
+            path="/reset-password"
+            element={<ResetPassword />}
           />
           <Route
             path="/home"

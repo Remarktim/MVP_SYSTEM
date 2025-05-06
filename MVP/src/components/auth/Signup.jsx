@@ -226,6 +226,7 @@ const Signup = () => {
     try {
       console.log("Checking email:", email);
 
+      // First, check the profiles table
       const { data, error } = await supabase.from("profiles").select("email").eq("email", email.trim()).limit(1);
 
       if (error) {
@@ -237,35 +238,28 @@ const Signup = () => {
       if (data && data.length > 0) {
         setEmailError("This email is already registered. Please use a different email or login to your existing account.");
         setIsCheckingEmail(false);
-        return;
+        return true; // Email exists
       }
 
-      try {
-        const tempPassword = "TEMP_" + Math.random().toString(36).substring(2);
+      // Second, check with the auth API without creating a user
+      const { data: userList, error: authError } = await supabase.auth.admin.listUsers({
+        filter: {
+          email: email.trim(),
+        },
+      });
 
-        const { data: signupData, error: signupError } = await supabase.auth.signUp({
-          email: email,
-          password: tempPassword,
-        });
-
-        if (signupError) {
-          // If there's an explicit error about existing user
-          if (signupError.message === "User already registered") {
-            setEmailError("This email is already registered. Please use a different email or login to your existing account.");
-          }
-        } else if (signupData?.user) {
-          console.log("Signup check response:", signupData.user);
-
-          // Check the identities array - if empty, email exists
-          if (signupData.user.identities && signupData.user.identities.length === 0) {
-            setEmailError("This email is already registered. Please use a different email or login to your existing account.");
-          }
-        }
-      } catch (signupCheckError) {
-        console.error("Error checking via signup:", signupCheckError);
+      if (authError) {
+        console.error("Error checking auth:", authError);
+      } else if (userList && userList.users && userList.users.length > 0) {
+        setEmailError("This email is already registered. Please use a different email or login to your existing account.");
+        setIsCheckingEmail(false);
+        return true; // Email exists
       }
+
+      return false; // Email doesn't exist
     } catch (error) {
       console.error("Error in email check:", error);
+      return false; // Assume email doesn't exist on error
     } finally {
       setIsCheckingEmail(false);
     }
@@ -421,36 +415,16 @@ const Signup = () => {
                       onChange={handleChange}
                       onBlur={() => checkEmailExists(formData.email)}
                     />
-                    {isCheckingEmail ? (
-                      <svg
-                        className="animate-spin h-5 w-5 absolute right-4 text-indigo-600"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="#bbb"
-                        stroke="#bbb"
-                        className="w-4 h-4 absolute right-4"
-                        viewBox="0 0 24 24">
-                        <path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"></path>
-                      </svg>
-                    )}
+
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="#bbb"
+                      stroke="#bbb"
+                      className="w-4 h-4 absolute right-4"
+                      viewBox="0 0 24 24">
+                      <path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"></path>
+                    </svg>
                   </div>
-                  {emailError && <p className="mt-1 text-sm text-red-600">{emailError}</p>}
                 </div>
 
                 <div>
