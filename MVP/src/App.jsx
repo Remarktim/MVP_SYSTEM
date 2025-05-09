@@ -1,11 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./hooks/useAuth";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
+import UserReports from "./pages/UserReports";
+import IssueDetail from "./pages/IssueDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 import ResetPassword from "./pages/ResetPassword";
+import SubmitIssue from "./pages/SubmitIssue"; // You'll need to create this
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -60,6 +64,8 @@ function App() {
             path="/home"
             element={<Home />}
           />
+
+          {/* Dashboard - Reports Feed */}
           <Route
             path="/dashboard"
             element={
@@ -68,6 +74,38 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* My Reports Page */}
+          <Route
+            path="/my-issues"
+            element={
+              <ProtectedRoute>
+                <UserReports />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Issue Detail Page */}
+          <Route
+            path="/issues/:id"
+            element={
+              <ProtectedRoute>
+                <IssueDetail />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Submit New Issue Page */}
+          <Route
+            path="/submit-issue"
+            element={
+              <ProtectedRoute>
+                <SubmitIssue />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Dashboard */}
           <Route
             path="/admin"
             element={

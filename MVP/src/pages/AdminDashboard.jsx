@@ -1,7 +1,7 @@
 // src/pages/AdminDashboard.jsx
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 const AdminDashboard = () => {
   const [issues, setIssues] = useState([]);
