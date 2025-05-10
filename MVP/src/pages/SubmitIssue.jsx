@@ -1,10 +1,10 @@
-// src/pages/SubmitIssue.jsx - With hidden search bar in header
-import { useState, useRef, useEffect } from "react";
+// src/pages/SubmitIssue.jsx - Clean version with improved validation
+import { useState } from "react";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../components/layout/Navbar"; // Import the Navbar without button
-import Header from "../components/layout/Header"; // Import the updated Header component
+import Navbar from "../components/layout/Navbar";
+import Header from "../components/layout/Header";
 
 const SubmitIssue = () => {
   const [title, setTitle] = useState("");
@@ -14,70 +14,139 @@ const SubmitIssue = () => {
   const [beforeImagePreview, setBeforeImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Handle image preview
+  // Handle image preview with validation
   const handleBeforeImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setBeforeImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBeforeImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      setError("Image size must be less than 5MB.");
+      return;
     }
+
+    setBeforeImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setBeforeImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Clear any previous errors when a valid image is selected
+    if (error && error.includes("Image size")) {
+      setError(null);
+    }
+  };
+
+  // Validate form inputs
+  const validateForm = () => {
+    if (!title.trim()) {
+      setError("Please enter a title.");
+      return false;
+    }
+
+    if (!description.trim()) {
+      setError("Please enter a description.");
+      return false;
+    }
+
+    if (!location.trim()) {
+      setError("Please enter a location.");
+      return false;
+    }
+
+    if (!beforeImage) {
+      setError("Please upload an image.");
+      return false;
+    }
+
+    return true;
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title.trim() || !description.trim() || !location.trim()) {
-      setError("Please fill in all required fields.");
+    // Validate form fields
+    if (!validateForm()) {
       return;
     }
 
     setSubmitting(true);
     setError(null);
+    setMessage(null);
 
     try {
-      // Upload image if present
-      let beforeImageUrl = null;
+      // First, upload the image if we have one
+      let imagePath = null;
 
       if (beforeImage) {
-        const beforeFileName = `${user.id}/${Date.now()}-before.${beforeImage.name.split(".").pop()}`;
-        const { data: beforeUploadData, error: beforeUploadError } = await supabase.storage.from("issue-images").upload(beforeFileName, beforeImage);
+        try {
+          // Generate a clean filename
+          const fileExt = beforeImage.name.split(".").pop().toLowerCase();
+          const fileName = `${Date.now()}.${fileExt}`;
+          const filePath = `${user.id}/${fileName}`;
 
-        if (beforeUploadError) throw beforeUploadError;
+          // Upload to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage.from("issue-images").upload(filePath, beforeImage, {
+            cacheControl: "3600",
+            upsert: true, // Allow overwriting
+          });
 
-        const { data: beforeUrlData } = supabase.storage.from("issue-images").getPublicUrl(beforeFileName);
-        beforeImageUrl = beforeUrlData.publicUrl;
+          if (uploadError) {
+            throw new Error(`Image upload failed: ${uploadError.message}`);
+          }
+
+          // Get the public URL
+          const { data: urlData } = supabase.storage.from("issue-images").getPublicUrl(filePath);
+
+          if (urlData && urlData.publicUrl) {
+            imagePath = urlData.publicUrl;
+          } else {
+            throw new Error("Could not get public URL for uploaded image");
+          }
+        } catch (imageError) {
+          setError(`Error uploading image: ${imageError.message}`);
+          setSubmitting(false);
+          return; // Stop form submission if image upload fails
+        }
       }
 
-      // Create the issue
-      const { data, error } = await supabase.from("issues").insert([
-        {
-          title,
-          description,
-          location,
-          user_id: user.id,
-          user_email: user.email,
-          status: "Under Review", // Default status
-          before_image_url: beforeImageUrl,
-          after_image_url: null, // Set after_image_url to null
-        },
-      ]);
+      // Now create the issue with or without the image path
+      const issueData = {
+        title,
+        description,
+        location,
+        user_id: user.id,
+        status: "Under Review",
+      };
 
-      if (error) throw error;
+      // Only add the image path if we have one
+      if (imagePath) {
+        issueData.before_image_path = imagePath;
+      }
 
-      // Redirect to dashboard after successful submission
-      navigate("/my-issues");
+      // Insert the issue
+      const { data: issueResult, error: insertError } = await supabase.from("issues").insert([issueData]).select();
+
+      if (insertError) {
+        throw new Error(`Failed to create issue: ${insertError.message}`);
+      }
+
+      setMessage("Issue submitted successfully!");
+
+      // Success! Wait a moment before redirecting
+      setTimeout(() => {
+        navigate("/my-issues");
+      }, 2000);
     } catch (error) {
-      console.error("Error submitting issue:", error.message);
-      setError("Failed to submit issue. Please try again.");
+      setError(error.message);
     } finally {
       setSubmitting(false);
     }
@@ -104,6 +173,12 @@ const SubmitIssue = () => {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
               <p>{error}</p>
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700">
+              <p>{message}</p>
             </div>
           )}
 
@@ -173,7 +248,9 @@ const SubmitIssue = () => {
 
               {/* Before Image */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">Image</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Image <span className="text-red-500">*</span>
+                </label>
                 <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
                   <div className="space-y-1 text-center">
                     {beforeImagePreview ? (
@@ -224,7 +301,7 @@ const SubmitIssue = () => {
                           </label>
                           <p className="pl-1">or drag and drop</p>
                         </div>
-                        <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                        <p className="text-xs text-gray-500">PNG, JPG up to 5MB (required)</p>
                       </>
                     )}
                   </div>
@@ -234,14 +311,14 @@ const SubmitIssue = () => {
               {/* Submit Button */}
               <div className="flex justify-end space-x-3">
                 <Link
-                  to="/dashboard"
-                  className="rounded-xl py-2 px-4 border border-gray-300  text-gray-700 bg-white hover:bg-gray-50">
+                  to="/my-issues"
+                  className="rounded-xl py-2 px-4 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl py-2 px-4 bg-indigo-600 text-white  hover:bg-indigo-700 disabled:opacity-50">
+                  className="rounded-xl py-2 px-4 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
                   {submitting ? "Submitting..." : "Submit Report"}
                 </button>
               </div>

@@ -1,47 +1,56 @@
-// src/pages/UserReports.jsx - With dropdown status filter
-import { useState, useEffect, useRef } from "react";
-import { userReports } from "../data/sampleData";
+// src/pages/UserReports.jsx - With complete delete functionality
+import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
-import { Trash2, X } from "lucide-react";
-import Navbar from "../components/layout/Navbar"; // Import the Navbar with centered links
-import Header from "../components/layout/Header"; // Import the Header with centered search
-import DropdownStatusFilter from "../components/layout/DropdownStatusFilter"; // Import the dropdown filter
+import { Trash2, X, AlertCircle } from "lucide-react";
+import Navbar from "../components/layout/Navbar";
+import Header from "../components/layout/Header";
+import DropdownStatusFilter from "../components/layout/DropdownStatusFilter";
 
 const UserReports = () => {
-  const [userIssues, setUserIssues] = useState(userReports);
+  const [userIssues, setUserIssues] = useState([]);
   const [filteredIssues, setFilteredIssues] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [issueToDelete, setIssueToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Fetch user's issues
+  const fetchUserIssues = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from("issues")
+        .select("*")
+        .eq("user_id", user.id) // Filter by current user
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      console.log("Fetched user issues:", data);
+      setUserIssues(data || []);
+      setFilteredIssues(data || []);
+    } catch (error) {
+      console.error("Error fetching user issues:", error.message);
+      setError("Failed to load your reports. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial data fetch
   useEffect(() => {
-    // Fetch user's issues
-    const fetchUserIssues = async () => {
-      if (!user) return;
-
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from("issues")
-          .select("*")
-          .eq("user_id", user.id) // Filter by current user
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        setUserIssues(data || []);
-        setFilteredIssues(data || []);
-      } catch (error) {
-        console.error("Error fetching user issues:", error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserIssues();
   }, [user]);
 
@@ -82,16 +91,69 @@ const UserReports = () => {
     setDeleteModalOpen(true);
   };
 
+  // Function to extract the file path from a URL
+  const extractStoragePathFromUrl = (url) => {
+    if (!url) return null;
+
+    // Try to extract the path from the URL
+    try {
+      // Parse the URL to get the pathname
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split("/");
+
+      // The path should be after "/object/public/bucket-name/"
+      const publicIndex = pathParts.indexOf("public");
+      if (publicIndex !== -1 && publicIndex + 2 < pathParts.length) {
+        // Extract everything after the bucket name
+        return pathParts.slice(publicIndex + 2).join("/");
+      }
+
+      return null;
+    } catch (e) {
+      console.error("Failed to extract path from URL:", e);
+      return null;
+    }
+  };
+
   // Handle issue deletion
   const handleDeleteIssue = async () => {
     if (!issueToDelete) return;
 
+    setDeleting(true);
+    setError(null);
+    setSuccess(null);
+
     try {
+      console.log("Deleting issue:", issueToDelete);
+
+      // Step 1: Try to delete the associated image from storage if it exists
+      if (issueToDelete.before_image_path) {
+        try {
+          const filePath = extractStoragePathFromUrl(issueToDelete.before_image_path);
+          console.log("Extracted file path:", filePath);
+
+          if (filePath) {
+            const { error: storageError } = await supabase.storage.from("issue-images").remove([filePath]);
+
+            if (storageError) {
+              console.error("Error deleting image from storage:", storageError);
+              // Continue with issue deletion even if image deletion fails
+            } else {
+              console.log("Successfully deleted image from storage");
+            }
+          }
+        } catch (imageError) {
+          console.error("Error handling image deletion:", imageError);
+          // Continue with issue deletion even if image deletion fails
+        }
+      }
+
+      // Step 2: Delete the issue record from the database
       const { error } = await supabase.from("issues").delete().eq("id", issueToDelete.id);
 
       if (error) throw error;
 
-      // Remove from UI
+      // Step 3: Update UI
       const updatedIssues = userIssues.filter((issue) => issue.id !== issueToDelete.id);
       setUserIssues(updatedIssues);
       setFilteredIssues(
@@ -107,11 +169,19 @@ const UserReports = () => {
             })
       );
 
+      setSuccess("Report deleted successfully");
       setDeleteModalOpen(false);
       setIssueToDelete(null);
+
+      // Clear success message after a few seconds
+      setTimeout(() => {
+        setSuccess(null);
+      }, 3000);
     } catch (error) {
       console.error("Error deleting issue:", error.message);
-      alert("Failed to delete issue. Please try again.");
+      setError("Failed to delete report. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -139,6 +209,20 @@ const UserReports = () => {
           />
         </div>
 
+        {/* Error and Success messages */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+            <span className="text-red-700">{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-md">
+            <span className="text-green-700">{success}</span>
+          </div>
+        )}
+
         {/* Reports feed with product card design */}
         {loading ? (
           <div className="text-center py-10">
@@ -149,16 +233,17 @@ const UserReports = () => {
             {filteredIssues.map((issue) => (
               <div
                 key={issue.id}
-                className="max-w-md rounded-md overflow-hidden shadow-md hover:shadow-lg bg-white cursor-pointer"
+                className="max-w-md rounded-xl overflow-hidden shadow-md hover:shadow-lg bg-white cursor-pointer"
                 onClick={() => navigate(`/issues/${issue.id}`)}>
                 {/* Image section with status badge */}
                 <div className="relative">
-                  {issue.before_image_url ? (
+                  {issue.before_image_path ? (
                     <img
                       className="w-full h-48 object-cover"
-                      src={issue.before_image_url}
+                      src={issue.before_image_path}
                       alt="Issue Before"
                       onError={(e) => {
+                        console.log("Failed to load image:", issue.before_image_path);
                         e.target.src = "/api/placeholder/500/300";
                       }}
                     />
@@ -189,7 +274,7 @@ const UserReports = () => {
                       Delete
                     </button>
                     <button
-                      className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded"
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/issues/${issue.id}`);
@@ -213,7 +298,7 @@ const UserReports = () => {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gra bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium text-gray-900">Confirm Deletion</h3>
@@ -227,13 +312,14 @@ const UserReports = () => {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={cancelDelete}
-                className="rounded-xl py-2 px-4 border border-gray-300  text-gray-700 bg-white hover:bg-gray-50">
+                className="rounded-xl py-2 px-4 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
                 Cancel
               </button>
               <button
                 onClick={handleDeleteIssue}
-                className="rounded-xl py-2 px-4 bg-red-600 text-white  hover:bg-red-700">
-                Delete
+                disabled={deleting}
+                className="rounded-xl py-2 px-4 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

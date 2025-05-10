@@ -189,21 +189,22 @@ const IssueDetail = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">{issue.title}</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">{issue.title}</h1>
                   </div>
                   <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(issue.status)}`}>{issue.status}</span>
                 </div>
 
+                {/* Description */}
                 <p className="text-gray-600 mb-6 whitespace-pre-line">{issue.description}</p>
 
                 {/* Before & After images - if they exist */}
-                {(issue.before_image_url || issue.after_image_url) && (
+                {(issue.before_image_path || issue.after_image_path) && (
                   <div className="flex flex-col lg:flex-row gap-6 mb-6">
-                    {issue.before_image_url && (
+                    {issue.before_image_path && (
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-500 mb-2">BEFORE</p>
                         <img
-                          src={issue.before_image_url}
+                          src={issue.before_image_path}
                           alt="Before"
                           className="w-full rounded-md object-cover h-80"
                           onError={(e) => {
@@ -212,11 +213,11 @@ const IssueDetail = () => {
                         />
                       </div>
                     )}
-                    {issue.after_image_url && (
+                    {issue.after_image_path && (
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-500 mb-2">AFTER</p>
                         <img
-                          src={issue.after_image_url}
+                          src={issue.after_image_path}
                           alt="After"
                           className="w-full rounded-md object-cover h-80"
                           onError={(e) => {
