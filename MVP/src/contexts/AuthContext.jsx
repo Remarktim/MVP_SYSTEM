@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Check active session
@@ -17,7 +18,25 @@ export const AuthProvider = ({ children }) => {
           error,
         } = await supabase.auth.getSession();
         if (error) throw error;
-        setUser(session?.user || null);
+
+        if (session?.user) {
+          setUser(session.user);
+
+          // Check if user has admin role
+          const hasAdminRole = session.user.app_metadata?.role === "admin" || session.user.user_metadata?.role === "admin";
+          setIsAdmin(hasAdminRole);
+
+          console.log("User session loaded:", {
+            id: session.user.id,
+            email: session.user.email,
+            isAdmin: hasAdminRole,
+            metadata: session.user.user_metadata,
+            app_metadata: session.user.app_metadata,
+          });
+        } else {
+          setUser(null);
+          setIsAdmin(false);
+        }
       } catch (error) {
         console.error("Error getting session:", error.message);
         setError(error.message);
@@ -35,8 +54,19 @@ export const AuthProvider = ({ children }) => {
       try {
         if (event === "SIGNED_OUT") {
           setUser(null);
-        } else {
-          setUser(session?.user || null);
+          setIsAdmin(false);
+        } else if (session?.user) {
+          setUser(session.user);
+
+          // Check if user has admin role
+          const hasAdminRole = session.user.app_metadata?.role === "admin" || session.user.user_metadata?.role === "admin";
+          setIsAdmin(hasAdminRole);
+
+          console.log("Auth state changed:", {
+            event,
+            user: session.user.email,
+            isAdmin: hasAdminRole,
+          });
         }
       } catch (error) {
         console.error("Error in auth state change:", error.message);
@@ -66,6 +96,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     signOut,
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

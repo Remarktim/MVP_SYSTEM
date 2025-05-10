@@ -23,11 +23,23 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Admin route component
+// Admin route component - updated to check both user_metadata and app_metadata
 const AdminRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
-  if (!user || user.app_metadata?.role !== "admin") {
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  // Check for admin role in both metadata objects
+  const hasAdminRole = isAdmin || user.app_metadata?.role === "admin" || user.user_metadata?.role === "admin";
+
+  if (!hasAdminRole) {
+    console.log("Access denied: User is not an admin", {
+      email: user.email,
+      metadata: user.user_metadata,
+      app_metadata: user.app_metadata,
+    });
     return <Navigate to="/dashboard" />;
   }
 

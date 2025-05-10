@@ -1,12 +1,13 @@
-// src/components/Navbar.jsx - With centered navigation links
+// Updated Navbar.jsx component with Admin Dashboard link
+
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BarChart2, Home, Clipboard } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth"; // Import useAuth hook
+import { BarChart2, Home, Clipboard, ShieldCheck } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 
 const Navbar = () => {
   const location = useLocation();
-  const { user, signOut } = useAuth(); // Get user and signOut function
+  const { user, signOut, isAdmin } = useAuth(); // Get user, signOut function and isAdmin
 
   // State for profile dropdown
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -47,6 +48,9 @@ const Navbar = () => {
     return () => document.removeEventListener("keydown", keyHandler);
   });
 
+  // Check for admin role
+  const hasAdminRole = isAdmin || user?.app_metadata?.role === "admin" || user?.user_metadata?.role === "admin";
+
   return (
     <div className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto">
@@ -73,6 +77,16 @@ const Navbar = () => {
                 <Clipboard className="mr-1 h-4 w-4" />
                 My Reports
               </Link>
+
+              {/* Admin Dashboard Link - Only visible for admins */}
+              {hasAdminRole && (
+                <Link
+                  to="/admin"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive("/admin")}`}>
+                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  Admin
+                </Link>
+              )}
             </div>
           </div>
 
@@ -101,6 +115,7 @@ const Navbar = () => {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800">{fullName}</p>
+                      {hasAdminRole && <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Admin</span>}
                     </div>
                   </div>
                   <div className="mt-1 py-2 px-3 bg-gray-50 rounded-md">
@@ -113,11 +128,18 @@ const Navbar = () => {
                     className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
                     View profile
                   </Link>
-                  <Link
-                    to="/settings"
-                    className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    Settings
-                  </Link>
+
+                  {/* Admin dashboard link in dropdown */}
+                  {hasAdminRole && (
+                    <Link
+                      to="/admin"
+                      className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-gray-50">
+                      <span className="flex items-center">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </span>
+                    </Link>
+                  )}
                 </div>
                 <div>
                   <button
@@ -137,6 +159,9 @@ const Navbar = () => {
             <BarChart2 className="h-8 w-8 text-indigo-600" />
             <h1 className="ml-2 text-xl font-bold text-gray-800">Community Connect MVP</h1>
           </div>
+
+          {/* Admin badge for mobile */}
+          {hasAdminRole && <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">Admin</span>}
         </div>
 
         {/* Mobile navbar - Bottom */}
@@ -154,6 +179,17 @@ const Navbar = () => {
               <Clipboard className="h-6 w-6" />
               <span className="text-xs mt-1">My Reports</span>
             </Link>
+
+            {/* Admin link for mobile */}
+            {hasAdminRole && (
+              <Link
+                to="/admin"
+                className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/admin" ? "text-indigo-600" : "text-gray-500"}`}>
+                <ShieldCheck className="h-6 w-6" />
+                <span className="text-xs mt-1">Admin</span>
+              </Link>
+            )}
+
             {/* Keep Submit button in mobile view even when the header button is hidden */}
             {!isSubmitPage ? (
               <Link
@@ -196,6 +232,7 @@ const Navbar = () => {
                 <span className="text-xs mt-1">Report</span>
               </div>
             )}
+
             {/* Profile button for mobile - opens the profile page */}
             <Link
               to="/profile"
