@@ -13,6 +13,11 @@ const Navbar = () => {
   const trigger = useRef(null);
   const dropdown = useRef(null);
 
+  // User profile info
+  const fullName = user?.user_metadata?.full_name || "User";
+  const userEmail = user?.email || "";
+  const userInitial = (fullName || "U").charAt(0).toUpperCase();
+
   // Helper to determine active link
   const isActive = (path) => {
     return location.pathname === path ? "text-indigo-600 border-indigo-600" : "text-gray-500 border-transparent hover:text-indigo-500 hover:border-indigo-500";
@@ -79,7 +84,7 @@ const Navbar = () => {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center">
                 <div className="relative w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white hover:bg-indigo-700">
-                  <span className="text-lg font-medium">{(user?.user_metadata?.full_name || user?.email || "U").charAt(0).toUpperCase()}</span>
+                  <span className="text-lg font-medium">{userInitial}</span>
                   <span className="absolute -right-0.5 -top-0.5 block h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
                 </div>
               </button>
@@ -91,15 +96,15 @@ const Navbar = () => {
                 <div className="flex flex-col px-4 py-3">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="relative aspect-square w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white">
-                      <span className="text-lg font-medium">{(user?.user_metadata?.full_name || user?.email || "U").charAt(0).toUpperCase()}</span>
+                      <span className="text-lg font-medium">{userInitial}</span>
                       <span className="absolute -right-0.5 -top-0.5 block h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">{user?.user_metadata?.full_name || "User"}</p>
+                      <p className="text-sm font-semibold text-gray-800">{fullName}</p>
                     </div>
                   </div>
                   <div className="mt-1 py-2 px-3 bg-gray-50 rounded-md">
-                    <p className="text-sm text-gray-500 break-all">{user?.email}</p>
+                    <p className="text-sm text-gray-500 break-all">{userEmail}</p>
                   </div>
                 </div>
                 <div>
@@ -196,9 +201,7 @@ const Navbar = () => {
               to="/profile"
               className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/profile" ? "text-indigo-600" : "text-gray-500"}`}>
               <div className="relative">
-                <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs">
-                  {(user?.user_metadata?.full_name || user?.email || "U").charAt(0).toUpperCase()}
-                </div>
+                <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs">{userInitial}</div>
                 <span className="absolute -right-0.5 -top-0.5 block h-1.5 w-1.5 rounded-full border-1 border-white bg-green-500"></span>
               </div>
               <span className="text-xs mt-1">Profile</span>

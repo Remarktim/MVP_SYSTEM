@@ -1,4 +1,4 @@
-// src/pages/Profile.jsx - Updated without bio and address fields, keeping phone number in edit mode
+// src/pages/Profile.jsx - Enhanced to properly display and edit user name and phone number
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
@@ -16,15 +16,16 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // User profile state - Removed bio, address, and avatar_url
+  // User profile state
   const [profile, setProfile] = useState({
     full_name: "",
     email: "",
     phone: "",
   });
 
-  // Form state while editing - Removed bio and address
+  // Form state while editing
   const [formData, setFormData] = useState({
     full_name: "",
     phone: "",
@@ -44,31 +45,47 @@ const Profile = () => {
 
       try {
         setLoading(true);
+        console.log("Loading profile for user:", user.id);
+        console.log("User metadata:", user.user_metadata);
 
-        // First, get the user's metadata - Removed bio, address, and avatar_url
+        // Get user metadata from Auth
         const userData = {
           full_name: user.user_metadata?.full_name || "",
           email: user.email || "",
-          phone: user.user_metadata?.phone || "",
+          phone: user.user_metadata?.phone || user.user_metadata?.contact_number || "",
         };
 
-        // Then, check if there's additional profile info in the profiles table
+        console.log("Extracted user data:", userData);
+
+        // Check if there's additional profile info in the profiles table
         const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-        if (data && !error) {
-          // Merge the data, prioritizing the profiles table - Removed bio, address, and avatar_url
+        if (error) {
+          console.log("Error fetching profile:", error);
+          // If it's a "not found" error, that's okay - we'll create it later
+          if (error.code !== "PGRST116") {
+            throw error;
+          }
+        }
+
+        console.log("Profile data from DB:", data);
+
+        if (data) {
+          // Merge the data, prioritizing the profiles table
           const mergedData = {
             ...userData,
-            full_name: data.full_name || userData.full_name,
-            phone: data.phone || userData.phone,
+            full_name: data.name || data.full_name || userData.full_name,
+            phone: data.contact_number || data.phone || userData.phone,
           };
+          console.log("Merged profile data:", mergedData);
           setProfile(mergedData);
           setFormData({
             full_name: mergedData.full_name,
             phone: mergedData.phone,
           });
         } else {
-          // If no profile record found, just use the user data - Removed bio and address
+          // If no profile record found, just use the user data
+          console.log("No profile found, using auth data");
           setProfile(userData);
           setFormData({
             full_name: userData.full_name,
@@ -76,7 +93,8 @@ const Profile = () => {
           });
         }
       } catch (error) {
-        console.error("Error loading profile:", error.message);
+        console.error("Error loading profile:", error);
+        setError("Failed to load profile data. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -111,7 +129,7 @@ const Profile = () => {
     setSuccessMessage(null);
 
     try {
-      // Update user metadata - Removed bio and address
+      // Update user metadata
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           full_name: formData.full_name,
@@ -119,19 +137,57 @@ const Profile = () => {
         },
       });
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Auth update error:", updateError);
+        throw updateError;
+      }
 
-      // Also update or insert into profiles table - Removed bio and address
-      const { error: upsertError } = await supabase.from("profiles").upsert({
+      // Let's check the structure of the profiles table first
+      const { data: profilesData, error: profilesError } = await supabase.from("profiles").select("*").limit(1);
+
+      if (profilesError) {
+        console.error("Error checking profiles:", profilesError);
+      }
+
+      // Log the structure to see available columns
+      console.log("Profiles table structure:", profilesData);
+
+      // Prepare the update object based on what we know about the structure
+      // Using a simpler approach with fewer fields and WITHOUT updated_at
+      const updateObject = {
         id: user.id,
-        full_name: formData.full_name,
-        phone: formData.phone,
-        updated_at: new Date(),
-      });
+      };
 
-      if (upsertError) throw upsertError;
+      // Add name/full_name field - try to match existing structure
+      if (profilesData && profilesData[0] && "name" in profilesData[0]) {
+        updateObject.name = formData.full_name;
+      } else if (profilesData && profilesData[0] && "full_name" in profilesData[0]) {
+        updateObject.full_name = formData.full_name;
+      }
 
-      // Update local state - Removed bio and address
+      // Add phone/contact_number field - try to match existing structure
+      if (profilesData && profilesData[0] && "contact_number" in profilesData[0]) {
+        updateObject.contact_number = formData.phone;
+      } else if (profilesData && profilesData[0] && "phone" in profilesData[0]) {
+        updateObject.phone = formData.phone;
+      }
+
+      // Add email if the field exists
+      if (profilesData && profilesData[0] && "email" in profilesData[0]) {
+        updateObject.email = user.email;
+      }
+
+      console.log("Updating profile with:", updateObject);
+
+      // Update the profiles table with the prepared object
+      const { error: upsertError } = await supabase.from("profiles").upsert(updateObject);
+
+      if (upsertError) {
+        console.error("Profile upsert error:", upsertError);
+        throw upsertError;
+      }
+
+      // Update local state
       setProfile({
         ...profile,
         full_name: formData.full_name,
@@ -141,8 +197,8 @@ const Profile = () => {
       setSuccessMessage("Profile updated successfully!");
       setEditMode(false);
     } catch (error) {
-      console.error("Error updating profile:", error.message);
-      setError("Failed to update profile. Please try again.");
+      console.error("Error updating profile:", error);
+      setError(`Failed to update profile: ${error.message}`);
     } finally {
       setSaving(false);
     }
@@ -241,7 +297,7 @@ const Profile = () => {
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 truncate">{profile.full_name || "User"}</h2>
-                    <p className="text-sm font-medium text-gray-500">{profile.email}</p>
+                    <p className="text-sm font-medium text-gray-500">{"User"}</p>
                   </div>
                 </div>
                 {/* Edit button */}
@@ -370,7 +426,7 @@ const Profile = () => {
                       </label>
                       <div className="mt-1 relative">
                         <input
-                          type={showPassword ? "text" : "password"}
+                          type={showConfirmPassword ? "text" : "password"}
                           id="confirmPassword"
                           name="confirmPassword"
                           value={passwordData.confirmPassword}
@@ -378,6 +434,12 @@ const Profile = () => {
                           className="block w-full p-2.5 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                           required
                         />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                          {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                        </button>
                       </div>
                     </div>
 
@@ -386,14 +448,14 @@ const Profile = () => {
                       <button
                         type="button"
                         onClick={handlePasswordCancel}
-                        className="rounded-xl py-2 px-4 border border-gray-300  text-gray-700 bg-white hover:bg-gray-50 ">
+                        className="rounded-xl py-2 px-4 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 ">
                         <X className="h-4 w-4 inline mr-1" />
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={saving}
-                        className="rounded-xl py-2 px-4 border border-transparent text-sm font-medium  shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                        className="rounded-xl py-2 px-4 border border-transparent text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
                         <Save className="h-4 w-4 inline mr-1" />
                         {saving ? "Updating..." : "Update Password"}
                       </button>
@@ -428,7 +490,7 @@ const Profile = () => {
                       </div>
                       <button
                         onClick={() => setPasswordMode(true)}
-                        className="text-sm text-white rounded-xl py-2 px-4 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        className="text-sm text-white rounded-xl py-2 px-4 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Change
                       </button>
                     </div>
