@@ -87,7 +87,7 @@ const Navbar = () => {
                 ref={dropdown}
                 onFocus={() => setDropdownOpen(true)}
                 onBlur={() => setDropdownOpen(false)}
-                className={`absolute right-0 top-full mt-1 w-[240px] divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-lg ${dropdownOpen ? "block" : "hidden"}`}>
+                className={`absolute right-0 top-full mt-1 w-[240px] divide-y z-50 divide-gray-200 overflow-hidden rounded-lg bg-white shadow-lg ${dropdownOpen ? "block" : "hidden"}`}>
                 <div className="flex flex-col px-4 py-3">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="relative aspect-square w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white">

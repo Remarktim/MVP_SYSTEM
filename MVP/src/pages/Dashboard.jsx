@@ -41,7 +41,7 @@ const Dashboard = () => {
       <Navbar />
 
       {/* Header with Search and Report Button */}
-      <Header title="Completed Reports" />
+      <Header title="Newsfeed Reports" />
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -98,8 +98,8 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="text-center py-10 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">No completed reports yet</h3>
-            <p className="mt-1 text-sm text-gray-500">Completed community issues will appear here.</p>
+            <h3 className="text-lg font-medium text-gray-900">No reports yet</h3>
+            <p className="mt-1 text-sm text-gray-500">Community all issues will appear here.</p>
           </div>
         )}
       </main>

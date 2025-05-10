@@ -9,7 +9,8 @@ import UserReports from "./pages/UserReports";
 import IssueDetail from "./pages/IssueDetail";
 import AdminDashboard from "./pages/AdminDashboard";
 import ResetPassword from "./pages/ResetPassword";
-import SubmitIssue from "./pages/SubmitIssue"; // You'll need to create this
+import SubmitIssue from "./pages/SubmitIssue";
+import Profile from "./pages/Profile";
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -101,6 +102,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <SubmitIssue />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* User Profile Page */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

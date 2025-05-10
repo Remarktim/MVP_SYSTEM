@@ -1,14 +1,18 @@
-// src/pages/UserReports.jsx - With separate Header component
+// src/pages/UserReports.jsx - With dropdown status filter
 import { useState, useEffect, useRef } from "react";
+import { userReports } from "../data/sampleData";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import { Trash2, X } from "lucide-react";
-import Navbar from "../components/layout/Navbar"; // Import the Navbar without button
-import Header from "../components/layout/Header"; // Import the Header with search and button
+import Navbar from "../components/layout/Navbar"; // Import the Navbar with centered links
+import Header from "../components/layout/Header"; // Import the Header with centered search
+import DropdownStatusFilter from "../components/layout/DropdownStatusFilter"; // Import the dropdown filter
 
 const UserReports = () => {
-  const [userIssues, setUserIssues] = useState([]);
+  const [userIssues, setUserIssues] = useState(userReports);
+  const [filteredIssues, setFilteredIssues] = useState([]);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [issueToDelete, setIssueToDelete] = useState(null);
@@ -30,6 +34,7 @@ const UserReports = () => {
 
         if (error) throw error;
         setUserIssues(data || []);
+        setFilteredIssues(data || []);
       } catch (error) {
         console.error("Error fetching user issues:", error.message);
       } finally {
@@ -39,6 +44,22 @@ const UserReports = () => {
 
     fetchUserIssues();
   }, [user]);
+
+  // Apply filter when activeFilter changes
+  useEffect(() => {
+    if (activeFilter === "all") {
+      setFilteredIssues(userIssues);
+    } else {
+      const statusMap = {
+        "under-review": "Under Review",
+        "in-progress": "In Progress",
+        completed: "Completed",
+      };
+
+      const filtered = userIssues.filter((issue) => issue.status === statusMap[activeFilter]);
+      setFilteredIssues(filtered);
+    }
+  }, [activeFilter, userIssues]);
 
   // Get status color
   const getStatusColor = (status) => {
@@ -71,7 +92,21 @@ const UserReports = () => {
       if (error) throw error;
 
       // Remove from UI
-      setUserIssues(userIssues.filter((issue) => issue.id !== issueToDelete.id));
+      const updatedIssues = userIssues.filter((issue) => issue.id !== issueToDelete.id);
+      setUserIssues(updatedIssues);
+      setFilteredIssues(
+        activeFilter === "all"
+          ? updatedIssues
+          : updatedIssues.filter((issue) => {
+              const statusMap = {
+                "under-review": "Under Review",
+                "in-progress": "In Progress",
+                completed: "Completed",
+              };
+              return issue.status === statusMap[activeFilter];
+            })
+      );
+
       setDeleteModalOpen(false);
       setIssueToDelete(null);
     } catch (error) {
@@ -95,15 +130,23 @@ const UserReports = () => {
       <Header title="My Reports" />
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        {/* Title and Filter section */}
+        <div className="flex justify-between items-center mb-6">
+          <DropdownStatusFilter
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+          />
+        </div>
+
         {/* Reports feed with product card design */}
         {loading ? (
           <div className="text-center py-10">
             <div className="spinner">Loading...</div>
           </div>
-        ) : userIssues.length > 0 ? (
+        ) : filteredIssues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userIssues.map((issue) => (
+            {filteredIssues.map((issue) => (
               <div
                 key={issue.id}
                 className="max-w-md rounded-md overflow-hidden shadow-md hover:shadow-lg bg-white cursor-pointer"
@@ -160,8 +203,10 @@ const UserReports = () => {
           </div>
         ) : (
           <div className="text-center py-10 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">You haven't reported any issues yet</h3>
-            <p className="mt-1 text-sm text-gray-500">Create your first report by clicking 'Report New Issue'.</p>
+            <h3 className="text-lg font-medium text-gray-900">{activeFilter === "all" ? "You haven't reported any issues yet" : `No ${activeFilter.replace("-", " ")} reports found`}</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {activeFilter === "all" ? "Create your first report by clicking 'Report New Issue'." : "Try selecting a different filter or create a new report."}
+            </p>
           </div>
         )}
       </main>
@@ -182,12 +227,12 @@ const UserReports = () => {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={cancelDelete}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                className="rounded-xl py-2 px-4 border border-gray-300  text-gray-700 bg-white hover:bg-gray-50">
                 Cancel
               </button>
               <button
                 onClick={handleDeleteIssue}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                className="rounded-xl py-2 px-4 bg-red-600 text-white  hover:bg-red-700">
                 Delete
               </button>
             </div>
