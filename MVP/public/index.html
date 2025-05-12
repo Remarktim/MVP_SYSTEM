@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/vite.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Mantis Admin Dashboard - A modern React admin template" />
+    <meta
+      http-equiv="X-UA-Compatible"
+      content="IE=edge" />
+    <meta
+      name="theme-color"
+      content="#ffffff" />
+
+    <!-- Preload key assets -->
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com" />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin />
+
+    <!-- DNS prefetch -->
+    <link
+      rel="dns-prefetch"
+      href="https://fonts.googleapis.com" />
+
+    <!-- Font optimization -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      as="style" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+
+    <title>Mantis Admin Dashboard</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script
+      type="module"
+      src="/src/main.jsx"></script>
+    <!-- Preload key scripts -->
+    <script type="module">
+      // Add preload for critical modules
+      const modules = ["/src/components/layout/AdminLayout.jsx", "/src/components/layout/AdminHeader.jsx", "/src/components/layout/AdminSidebar.jsx"];
+
+      modules.forEach((module) => {
+        const link = document.createElement("link");
+        link.rel = "modulepreload";
+        link.href = module;
+        document.head.appendChild(link);
+      });
+    </script>
+  </body>
+</html>

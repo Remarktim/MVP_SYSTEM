@@ -7,10 +7,18 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import UserReports from "./pages/UserReports";
 import IssueDetail from "./pages/IssueDetail";
-import AdminDashboard from "./pages/AdminDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import SubmitIssue from "./pages/SubmitIssue";
 import Profile from "./pages/Profile";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminCharts from "./pages/AdminCharts";
+import AdminIssues from "./pages/AdminIssues";
+import AdminUsers from "./pages/AdminUsers";
+import AdminSettings from "./pages/AdminSettings";
+import ReportDetail from "./pages/ReportDetail";
+import AuthRedirect from "./pages/AuthRedirect";
+import AdminProfile from "./pages/AdminProfile";
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
@@ -51,15 +59,10 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Redirect root to login */}
+          {/* Use AuthRedirect component for root path */}
           <Route
             path="/"
-            element={
-              <Navigate
-                to="/login"
-                replace
-              />
-            }
+            element={<AuthRedirect />}
           />
           <Route
             path="/login"
@@ -128,15 +131,43 @@ function App() {
             }
           />
 
-          {/* Admin Dashboard */}
+          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
               <AdminRoute>
-                <AdminDashboard />
+                <AdminLayout />
               </AdminRoute>
-            }
-          />
+            }>
+            <Route
+              index
+              element={<AdminDashboard />}
+            />
+            <Route
+              path="charts"
+              element={<AdminCharts />}
+            />
+            <Route
+              path="issues"
+              element={<AdminIssues />}
+            />
+            <Route
+              path="reports/:id"
+              element={<ReportDetail />}
+            />
+            <Route
+              path="users"
+              element={<AdminUsers />}
+            />
+            <Route
+              path="settings"
+              element={<AdminSettings />}
+            />
+            <Route
+              path="profile"
+              element={<AdminProfile />}
+            />
+          </Route>
         </Routes>
       </AuthProvider>
     </Router>

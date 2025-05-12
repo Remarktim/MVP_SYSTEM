@@ -13,14 +13,21 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
-  // Redirect if already logged in
+  // Redirect if already logged in based on admin status
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      // Check if user is admin and redirect accordingly
+      if (isAdmin) {
+        console.log("Admin user detected, redirecting to admin dashboard");
+        navigate("/admin");
+      } else {
+        console.log("Regular user detected, redirecting to user dashboard");
+        navigate("/dashboard");
+      }
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();

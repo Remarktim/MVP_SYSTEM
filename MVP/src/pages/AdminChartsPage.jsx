@@ -1,15 +1,15 @@
-// src/pages/AdminChartsPage.jsx
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
-import { ArrowLeft, Calendar, Users, ClipboardList, BarChart2 } from "lucide-react";
+import { ArrowLeft, Calendar, Users, ClipboardList, BarChart2, PieChart, Activity } from "lucide-react";
 
 const AdminChartsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLoginData, setUserLoginData] = useState([]);
   const [issueReportData, setIssueReportData] = useState([]);
+  const [issueTypeData, setIssueTypeData] = useState([]);
   const [userStats, setUserStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -33,13 +33,17 @@ const AdminChartsPage = () => {
         setUserLoginData(mockLoginData);
 
         // Fetch issue reports by month
-        const { data: issueData, error: issueError } = await supabase.from("issues").select("created_at").order("created_at");
+        const { data: issueData, error: issueError } = await supabase.from("issues").select("created_at, status, title").order("created_at");
 
         if (issueError) throw issueError;
 
         // Process issue data by month
         const processedIssueData = processIssueDataByMonth(issueData || []);
         setIssueReportData(processedIssueData);
+
+        // Process issue types
+        const issueTypes = processIssueTypes(issueData || []);
+        setIssueTypeData(issueTypes);
 
         // Get user stats
         const { data: usersData, error: usersError } = await supabase.from("profiles").select("id, created_at").order("created_at");
@@ -124,6 +128,55 @@ const AdminChartsPage = () => {
     return result.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   };
 
+  // Helper function to process issue types (based on title keywords for this demo)
+  const processIssueTypes = (issueData) => {
+    // This is a simplified categorization based on title keywords
+    // In a real app, you'd have a proper category field
+    const categories = {
+      infrastructure: ["road", "street", "bridge", "building", "infrastructure", "sidewalk", "pathway"],
+      utilities: ["water", "electricity", "power", "utility", "gas", "sewage", "drainage"],
+      environment: ["tree", "park", "garden", "pollution", "trash", "garbage", "waste", "flood"],
+      safety: ["light", "crime", "safety", "dangerous", "hazard", "accident", "security"],
+      other: [],
+    };
+
+    const categoryCounts = {
+      infrastructure: 0,
+      utilities: 0,
+      environment: 0,
+      safety: 0,
+      other: 0,
+    };
+
+    issueData.forEach((issue) => {
+      const title = issue.title.toLowerCase();
+      let matched = false;
+
+      for (const [category, keywords] of Object.entries(categories)) {
+        if (category === "other") continue;
+
+        for (const keyword of keywords) {
+          if (title.includes(keyword)) {
+            categoryCounts[category]++;
+            matched = true;
+            break;
+          }
+        }
+
+        if (matched) break;
+      }
+
+      if (!matched) {
+        categoryCounts.other++;
+      }
+    });
+
+    return Object.entries(categoryCounts).map(([category, count]) => ({
+      category: category.charAt(0).toUpperCase() + category.slice(1),
+      count,
+    }));
+  };
+
   // Helper function to calculate user statistics
   const calculateUserStats = (usersData) => {
     const totalUsers = usersData.length;
@@ -186,6 +239,11 @@ const AdminChartsPage = () => {
       return `${item.month.substring(0, 3)} '${item.year.toString().slice(-2)}`;
     }
   };
+
+  // Calculate the total issues count across all types
+  const totalIssuesByType = useMemo(() => {
+    return issueTypeData.reduce((total, item) => total + item.count, 0);
+  }, [issueTypeData]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-900">
@@ -437,6 +495,88 @@ const AdminChartsPage = () => {
               </div>
             </div>
 
+            {/* Issue Types Pie Chart */}
+            <div className="mt-8 bg-white p-6 rounded-lg shadow dark:bg-neutral-800">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Issue Categories Distribution</h3>
+                <p className="text-sm text-gray-500 dark:text-neutral-400">Breakdown of reported issues by category</p>
+              </div>
+
+              <div className="flex flex-col md:flex-row items-center md:items-start justify-center space-y-6 md:space-y-0 md:space-x-6">
+                {/* Pie Chart Visualization */}
+                <div className="relative w-64 h-64">
+                  <svg
+                    viewBox="0 0 100 100"
+                    className="w-full h-full">
+                    {/* Render pie segments, using different colors for each category */}
+                    {(() => {
+                      let currentAngle = 0;
+                      const colors = ["#4f46e5", "#16a34a", "#ea580c", "#0284c7", "#6b7280"];
+
+                      return issueTypeData.map((item, index) => {
+                        if (item.count === 0) return null;
+
+                        const percentage = (item.count / totalIssuesByType) * 100;
+                        const angleSize = 3.6 * percentage; // 3.6 = 360 / 100
+
+                        // Calculate the SVG arc path
+                        const startAngle = currentAngle;
+                        currentAngle += angleSize;
+                        const endAngle = currentAngle;
+
+                        const startX = 50 + 40 * Math.cos(((startAngle - 90) * Math.PI) / 180);
+                        const startY = 50 + 40 * Math.sin(((startAngle - 90) * Math.PI) / 180);
+                        const endX = 50 + 40 * Math.cos(((endAngle - 90) * Math.PI) / 180);
+                        const endY = 50 + 40 * Math.sin(((endAngle - 90) * Math.PI) / 180);
+
+                        const largeArcFlag = angleSize > 180 ? 1 : 0;
+
+                        const pathData = [`M 50 50`, `L ${startX} ${startY}`, `A 40 40 0 ${largeArcFlag} 1 ${endX} ${endY}`, `Z`].join(" ");
+
+                        return (
+                          <path
+                            key={index}
+                            d={pathData}
+                            fill={colors[index % colors.length]}
+                            stroke="#fff"
+                            strokeWidth="0.5"
+                          />
+                        );
+                      });
+                    })()}
+
+                    {/* Center circle for donut effect */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="25"
+                      fill="white"
+                    />
+                  </svg>
+                </div>
+
+                {/* Legend */}
+                <div className="space-y-2">
+                  {issueTypeData.map((item, index) => {
+                    const colors = ["bg-indigo-500", "bg-green-500", "bg-orange-500", "bg-blue-500", "bg-gray-500"];
+                    const percentage = totalIssuesByType > 0 ? ((item.count / totalIssuesByType) * 100).toFixed(1) : "0.0";
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center">
+                        <div className={`w-4 h-4 rounded-sm ${colors[index % colors.length]} mr-2`}></div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-neutral-300">{item.category}</span>
+                        <span className="ml-auto text-sm text-gray-500 dark:text-neutral-400">
+                          {item.count} ({percentage}%)
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
             {/* Comparison Chart */}
             <div className="mt-8 bg-white p-6 rounded-lg shadow dark:bg-neutral-800">
               <div className="mb-4">
@@ -525,6 +665,53 @@ const AdminChartsPage = () => {
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-orange-500 mr-1 rounded"></div>
                     <span className="text-xs text-gray-500 dark:text-neutral-400">Issues</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Distribution Chart */}
+            <div className="mt-8 bg-white p-6 rounded-lg shadow dark:bg-neutral-800">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Issue Status Distribution</h3>
+                <p className="text-sm text-gray-500 dark:text-neutral-400">Current status of all community issues</p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Issue status breakdown - statically defined for this demo */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-yellow-500 dark:text-yellow-400">Under Review</span>
+                    <span className="text-sm text-gray-600 dark:text-neutral-400">35%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-neutral-700">
+                    <div
+                      className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: "35%" }}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-blue-500 dark:text-blue-400">In Progress</span>
+                    <span className="text-sm text-gray-600 dark:text-neutral-400">40%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-neutral-700">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: "40%" }}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-green-500 dark:text-green-400">Completed</span>
+                    <span className="text-sm text-gray-600 dark:text-neutral-400">25%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-neutral-700">
+                    <div
+                      className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: "25%" }}></div>
                   </div>
                 </div>
               </div>

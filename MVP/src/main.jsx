@@ -1,10 +1,19 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Use createRoot API without StrictMode in production for better performance
+const root = createRoot(document.getElementById("root"));
+
+// Conditionally use StrictMode only in development
+if (import.meta.env) {
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+} else {
+  // Performance optimized render in production
+  root.render(<App />);
+}

@@ -2,12 +2,14 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
+// eslint-disable-next-line no-unused-vars
 import { useNavigate } from "react-router-dom";
 import { Pencil, Save, X, User, Mail, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 
 const Profile = () => {
   const { user } = useAuth();
+  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -46,51 +48,66 @@ const Profile = () => {
       try {
         setLoading(true);
         console.log("Loading profile for user:", user.id);
-        console.log("User metadata:", user.user_metadata);
+        console.log("User auth data:", {
+          id: user.id,
+          email: user.email,
+          metadata: user.user_metadata,
+          app_metadata: user.app_metadata,
+        });
 
-        // Get user metadata from Auth
-        const userData = {
-          full_name: user.user_metadata?.full_name || "",
-          email: user.email || "",
-          phone: user.user_metadata?.phone || user.user_metadata?.contact_number || "",
-        };
+        // First get profile data from the profiles table
+        const { data: profileData, error: profileError } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-        console.log("Extracted user data:", userData);
-
-        // Check if there's additional profile info in the profiles table
-        const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-
-        if (error) {
-          console.log("Error fetching profile:", error);
-          // If it's a "not found" error, that's okay - we'll create it later
-          if (error.code !== "PGRST116") {
-            throw error;
-          }
+        if (profileError && profileError.code !== "PGRST116") {
+          console.error("Error fetching profile from database:", profileError);
         }
 
-        console.log("Profile data from DB:", data);
+        console.log("Profile data from DB:", profileData);
 
-        if (data) {
-          // Merge the data, prioritizing the profiles table
-          const mergedData = {
-            ...userData,
-            full_name: data.name || data.full_name || userData.full_name,
-            phone: data.contact_number || data.phone || userData.phone,
+        // If profile exists in the database, use those values
+        if (profileData) {
+          const dbProfile = {
+            full_name: profileData.name || "",
+            email: profileData.email || user.email || "",
+            phone: profileData.contact_number || "",
           };
-          console.log("Merged profile data:", mergedData);
-          setProfile(mergedData);
+
+          console.log("Using profile from database:", dbProfile);
+          setProfile(dbProfile);
           setFormData({
-            full_name: mergedData.full_name,
-            phone: mergedData.phone,
+            full_name: dbProfile.full_name,
+            phone: dbProfile.phone,
           });
         } else {
-          // If no profile record found, just use the user data
-          console.log("No profile found, using auth data");
-          setProfile(userData);
+          // If no profile in database, use auth metadata
+          const authProfile = {
+            full_name: user.user_metadata?.full_name || "",
+            email: user.email || "",
+            phone: user.user_metadata?.phone || "",
+          };
+
+          console.log("No profile in DB, using auth data:", authProfile);
+          setProfile(authProfile);
           setFormData({
-            full_name: userData.full_name,
-            phone: userData.phone,
+            full_name: authProfile.full_name,
+            phone: authProfile.phone,
           });
+
+          // Create a profile record if it doesn't exist
+          console.log("Creating profile record for user:", user.id);
+          const { error: createError } = await supabase.from("profiles").insert({
+            id: user.id,
+            name: authProfile.full_name,
+            email: authProfile.email,
+            contact_number: authProfile.phone,
+            created_at: new Date().toISOString(),
+          });
+
+          if (createError) {
+            console.error("Error creating profile:", createError);
+          } else {
+            console.log("Created new profile record successfully");
+          }
         }
       } catch (error) {
         console.error("Error loading profile:", error);
@@ -129,63 +146,38 @@ const Profile = () => {
     setSuccessMessage(null);
 
     try {
-      // Update user metadata
-      const { error: updateError } = await supabase.auth.updateUser({
+      console.log("Updating profile with data:", formData);
+
+      // Update the profiles table first
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        id: user.id,
+        name: formData.full_name,
+        contact_number: formData.phone,
+        // Don't overwrite email field
+        updated_at: new Date().toISOString(),
+      });
+
+      if (profileError) {
+        console.error("Error updating profile in database:", profileError);
+        throw profileError;
+      }
+
+      console.log("Profile updated in database successfully");
+
+      // Also update user metadata in auth
+      const { error: authError } = await supabase.auth.updateUser({
         data: {
           full_name: formData.full_name,
           phone: formData.phone,
         },
       });
 
-      if (updateError) {
-        console.error("Auth update error:", updateError);
-        throw updateError;
+      if (authError) {
+        console.error("Error updating auth metadata:", authError);
+        throw authError;
       }
 
-      // Let's check the structure of the profiles table first
-      const { data: profilesData, error: profilesError } = await supabase.from("profiles").select("*").limit(1);
-
-      if (profilesError) {
-        console.error("Error checking profiles:", profilesError);
-      }
-
-      // Log the structure to see available columns
-      console.log("Profiles table structure:", profilesData);
-
-      // Prepare the update object based on what we know about the structure
-      // Using a simpler approach with fewer fields and WITHOUT updated_at
-      const updateObject = {
-        id: user.id,
-      };
-
-      // Add name/full_name field - try to match existing structure
-      if (profilesData && profilesData[0] && "name" in profilesData[0]) {
-        updateObject.name = formData.full_name;
-      } else if (profilesData && profilesData[0] && "full_name" in profilesData[0]) {
-        updateObject.full_name = formData.full_name;
-      }
-
-      // Add phone/contact_number field - try to match existing structure
-      if (profilesData && profilesData[0] && "contact_number" in profilesData[0]) {
-        updateObject.contact_number = formData.phone;
-      } else if (profilesData && profilesData[0] && "phone" in profilesData[0]) {
-        updateObject.phone = formData.phone;
-      }
-
-      // Add email if the field exists
-      if (profilesData && profilesData[0] && "email" in profilesData[0]) {
-        updateObject.email = user.email;
-      }
-
-      console.log("Updating profile with:", updateObject);
-
-      // Update the profiles table with the prepared object
-      const { error: upsertError } = await supabase.from("profiles").upsert(updateObject);
-
-      if (upsertError) {
-        console.error("Profile upsert error:", upsertError);
-        throw upsertError;
-      }
+      console.log("Auth metadata updated successfully");
 
       // Update local state
       setProfile({
@@ -198,7 +190,7 @@ const Profile = () => {
       setEditMode(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      setError(`Failed to update profile: ${error.message}`);
+      setError("Failed to update profile. Please try again.");
     } finally {
       setSaving(false);
     }

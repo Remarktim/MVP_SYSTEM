@@ -2,20 +2,140 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BarChart2, Home, Clipboard, ShieldCheck } from "lucide-react";
+import { BarChart2, Home, Clipboard, ShieldCheck, Bell, Gift, MessageCircle, PieChart, Users } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
+import { supabase } from "../../supabase";
+
+// Notification Component
+const NotificationDropdown = ({ open, handleClose, isMobile }) => {
+  if (!open) return null;
+
+  // Modify position for mobile view
+  const mobilePositionClasses = isMobile ? "fixed top-16 right-2 left-2 z-[100]" : "";
+  const mobileWidthClass = isMobile ? "w-auto" : "w-80";
+
+  return (
+    <div className={`absolute right-0 mt-1 ${mobileWidthClass} bg-white rounded-md shadow-lg z-50 overflow-hidden ${mobilePositionClasses}`}>
+      <div className="py-2 px-3 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-700">Notification</h3>
+      </div>
+      <div className="max-h-[350px] overflow-y-auto">
+        {/* Birthday notification */}
+        <div className="flex items-start hover:bg-gray-50 px-4 py-3 border-b border-gray-100">
+          <div className="flex-shrink-0 mr-3">
+            <div className="h-9 w-9 rounded-md bg-green-100 flex items-center justify-center text-green-500">
+              <Gift size={18} />
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex justify-between items-start">
+              <p className="text-sm text-gray-800">It's Cristina danny's birthday today.</p>
+              <span className="text-xs text-gray-500 whitespace-nowrap ml-2">3:00 AM</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">2 min ago</p>
+          </div>
+        </div>
+
+        {/* Comment notification */}
+        <div className="flex items-start hover:bg-gray-50 px-4 py-3 border-b border-gray-100">
+          <div className="flex-shrink-0 mr-3">
+            <div className="h-9 w-9 rounded-md bg-blue-100 flex items-center justify-center text-blue-500">
+              <MessageCircle size={18} />
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex justify-between items-start">
+              <p className="text-sm text-gray-800">Aida Burg commented your post.</p>
+              <span className="text-xs text-gray-500 whitespace-nowrap ml-2">6:00 AM</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">5 August</p>
+          </div>
+        </div>
+
+        {/* Profile completion */}
+        <div className="flex items-start hover:bg-gray-50 px-4 py-3 border-b border-gray-100">
+          <div className="flex-shrink-0 mr-3">
+            <div className="h-9 w-9 rounded-md bg-red-100 flex items-center justify-center text-red-500">
+              <PieChart size={18} />
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex justify-between items-start">
+              <p className="text-sm text-gray-800">
+                Your Profile is Complete <span className="font-semibold">60%</span>
+              </p>
+              <span className="text-xs text-gray-500 whitespace-nowrap ml-2">2:45 PM</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">7 hours ago</p>
+          </div>
+        </div>
+
+        {/* Meeting invitation */}
+        <div className="flex items-start hover:bg-gray-50 px-4 py-3 border-b border-gray-100">
+          <div className="flex-shrink-0 mr-3">
+            <div className="h-9 w-9 rounded-md bg-indigo-100 flex items-center justify-center text-indigo-500">
+              <div className="flex items-center justify-center bg-indigo-500 text-white rounded-full h-7 w-7">C</div>
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex justify-between items-start">
+              <p className="text-sm text-gray-800">Cristina Danny invited to join Meeting.</p>
+              <span className="text-xs text-gray-500 whitespace-nowrap ml-2">9:10 PM</span>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Daily scrum meeting time</p>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-gray-100 text-center">
+        <button
+          onClick={handleClose}
+          className="w-full py-2 px-4 text-sm font-medium text-indigo-600 hover:bg-gray-50">
+          View All
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const Navbar = () => {
   const location = useLocation();
   const { user, signOut, isAdmin } = useAuth(); // Get user, signOut function and isAdmin
+  const [profileData, setProfileData] = useState(null);
 
-  // State for profile dropdown
+  // State for dropdowns
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
   const trigger = useRef(null);
   const dropdown = useRef(null);
+  const notifTrigger = useRef(null);
+  const notifDropdown = useRef(null);
 
-  // User profile info
-  const fullName = user?.user_metadata?.full_name || "User";
+  // Fetch user profile data from the profiles table
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase.from("profiles").select("name, email, contact_number").eq("id", user.id).single();
+
+        if (error && error.code !== "PGRST116") {
+          console.error("Error fetching profile data:", error);
+        }
+
+        if (data) {
+          console.log("Profile data loaded:", data);
+          setProfileData(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile data:", err);
+      }
+    };
+
+    fetchProfileData();
+  }, [user]);
+
+  // User profile info - prioritize profiles table data over user metadata
+  const fullName = profileData?.name || user?.user_metadata?.full_name || "User";
   const userEmail = user?.email || "";
   const userInitial = (fullName || "U").charAt(0).toUpperCase();
 
@@ -27,7 +147,7 @@ const Navbar = () => {
   // Check if current page is the submit issue page
   const isSubmitPage = location.pathname === "/submit-issue";
 
-  // Close dropdown on click outside
+  // Close profile dropdown on click outside
   useEffect(() => {
     const clickHandler = ({ target }) => {
       if (!dropdown.current) return;
@@ -38,11 +158,23 @@ const Navbar = () => {
     return () => document.removeEventListener("click", clickHandler);
   });
 
-  // Close dropdown if the esc key is pressed
+  // Close notification dropdown on click outside
+  useEffect(() => {
+    const clickHandler = ({ target }) => {
+      if (!notifDropdown.current) return;
+      if (!notifDropdownOpen || notifDropdown.current.contains(target) || notifTrigger.current.contains(target)) return;
+      setNotifDropdownOpen(false);
+    };
+    document.addEventListener("click", clickHandler);
+    return () => document.removeEventListener("click", clickHandler);
+  });
+
+  // Close dropdowns if the esc key is pressed
   useEffect(() => {
     const keyHandler = ({ keyCode }) => {
-      if (!dropdownOpen || keyCode !== 27) return;
-      setDropdownOpen(false);
+      if (keyCode !== 27) return;
+      if (dropdownOpen) setDropdownOpen(false);
+      if (notifDropdownOpen) setNotifDropdownOpen(false);
     };
     document.addEventListener("keydown", keyHandler);
     return () => document.removeEventListener("keydown", keyHandler);
@@ -90,8 +222,27 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Right section - Profile dropdown */}
-          <div className="flex items-center justify-end w-1/4">
+          {/* Right section - Notifications and Profile dropdown */}
+          <div className="flex items-center justify-end w-1/4 space-x-4">
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                ref={notifTrigger}
+                onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+                className="relative p-1 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition duration-150">
+                <Bell className="h-6 w-6" />
+                <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs font-medium rounded-full bg-indigo-100 text-indigo-700">4</span>
+              </button>
+              <div ref={notifDropdown}>
+                <NotificationDropdown
+                  open={notifDropdownOpen}
+                  handleClose={() => setNotifDropdownOpen(false)}
+                  isMobile={false}
+                />
+              </div>
+            </div>
+
+            {/* Profile dropdown */}
             <div className="relative">
               <button
                 ref={trigger}
@@ -160,8 +311,26 @@ const Navbar = () => {
             <h1 className="ml-2 text-xl font-bold text-gray-800">Community Connect MVP</h1>
           </div>
 
-          {/* Admin badge for mobile */}
-          {hasAdminRole && <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">Admin</span>}
+          {/* Notification bell for mobile */}
+          <div className="flex items-center space-x-2">
+            <button
+              ref={notifTrigger}
+              onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+              className="relative p-1 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition duration-150">
+              <Bell className="h-6 w-6" />
+              <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs font-medium rounded-full bg-indigo-100 text-indigo-700">4</span>
+            </button>
+            <div ref={notifDropdown}>
+              <NotificationDropdown
+                open={notifDropdownOpen}
+                handleClose={() => setNotifDropdownOpen(false)}
+                isMobile={true}
+              />
+            </div>
+
+            {/* Admin badge for mobile */}
+            {hasAdminRole && <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">Admin</span>}
+          </div>
         </div>
 
         {/* Mobile navbar - Bottom */}
