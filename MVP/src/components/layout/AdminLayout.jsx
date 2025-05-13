@@ -1,13 +1,10 @@
-import React, { lazy, useMemo, useCallback, useEffect, useState, Suspense } from "react";
+import React, { useMemo, useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-// Import separated components using lazy loading
-const TopNavBar = lazy(() => import("./AdminHeader"));
-const SidebarContent = lazy(() => import("./AdminSidebar"));
+// Import components (removed lazy loading to reduce layout shifts)
+import TopNavBar from "./AdminHeader";
+import SidebarContent from "./AdminSidebar";
 import { navItems } from "./AdminSidebar";
-
-// Fallback component when lazy components are loading
-const LoadingFallback = () => <div className="h-full w-full"></div>;
 
 // Constants
 const drawerWidth = 260;
@@ -18,9 +15,6 @@ export default function AdminLayout() {
   // State management
   const [open, setOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [notifAnchorEl, setNotifAnchorEl] = useState(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Hooks
   const location = useLocation();
@@ -61,36 +55,13 @@ export default function AdminLayout() {
 
   // Toggle drawer for mobile view
   const handleDrawerToggle = useCallback(() => {
-    setMobileOpen(!mobileOpen);
-  }, [mobileOpen]);
+    setMobileOpen((prev) => !prev);
+  }, []);
 
   // Collapse drawer for desktop view
   const handleDrawerCollapse = useCallback(() => {
-    setOpen(!open);
-  }, [open]);
-
-  // User profile menu handlers
-  const handleMenu = useCallback((event) => {
-    setAnchorEl(event.currentTarget);
+    setOpen((prev) => !prev);
   }, []);
-
-  const handleClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
-
-  // Notification menu handlers
-  const handleNotifMenu = useCallback((event) => {
-    setNotifAnchorEl(event.currentTarget);
-  }, []);
-
-  const handleNotifClose = useCallback(() => {
-    setNotifAnchorEl(null);
-  }, []);
-
-  // Theme toggle handler
-  const handleThemeToggle = useCallback(() => {
-    setIsDarkMode(!isDarkMode);
-  }, [isDarkMode]);
 
   // Props for sidebar content
   const sidebarContentProps = useMemo(
@@ -111,18 +82,10 @@ export default function AdminLayout() {
       currentPage,
       handleDrawerCollapse,
       handleDrawerToggle,
-      handleThemeToggle,
-      handleNotifMenu,
-      handleMenu,
-      isDarkMode,
-      notifAnchorEl,
-      anchorEl,
-      handleNotifClose,
-      handleClose,
       drawerWidth,
       collapsedWidth,
     }),
-    [open, isMobile, currentPage, handleDrawerCollapse, handleDrawerToggle, handleThemeToggle, handleNotifMenu, handleMenu, isDarkMode, notifAnchorEl, anchorEl, handleNotifClose, handleClose]
+    [open, isMobile, currentPage, handleDrawerCollapse, handleDrawerToggle, drawerWidth, collapsedWidth]
   );
 
   // Props for mobile sidebar content
@@ -136,16 +99,14 @@ export default function AdminLayout() {
     [handleDrawerToggle, location]
   );
 
-  // Memoize Tailwind classes without template strings
+  // Calculate Tailwind classes
   const sidebarWidth = open ? "w-[260px]" : "w-[72px]";
   const mainWidth = open ? "w-[calc(100%-260px)]" : "w-[calc(100%-72px)]";
 
   return (
     <div className="flex min-h-screen overflow-hidden relative">
       {/* Top Navigation Bar */}
-      <Suspense fallback={<LoadingFallback />}>
-        <TopNavBar {...topNavBarProps} />
-      </Suspense>
+      <TopNavBar {...topNavBarProps} />
 
       {/* Sidebar Navigation - Only for desktop */}
       <div
@@ -153,9 +114,7 @@ export default function AdminLayout() {
         aria-label="navigation sidebar">
         {/* Desktop Drawer - Fixed position */}
         <div className={`h-full border-r border-gray-200 overflow-x-hidden transition-all duration-200 ease-in-out ${sidebarWidth}`}>
-          <Suspense fallback={<LoadingFallback />}>
-            <SidebarContent {...sidebarContentProps} />
-          </Suspense>
+          <SidebarContent {...sidebarContentProps} />
         </div>
       </div>
 
@@ -167,9 +126,7 @@ export default function AdminLayout() {
           <div
             className={`fixed inset-y-0 left-0 w-[260px] bg-white shadow-lg transform ${mobileOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out`}
             onClick={(e) => e.stopPropagation()}>
-            <Suspense fallback={<LoadingFallback />}>
-              <SidebarContent {...mobileSidebarContentProps} />
-            </Suspense>
+            <SidebarContent {...mobileSidebarContentProps} />
           </div>
         </div>
       )}

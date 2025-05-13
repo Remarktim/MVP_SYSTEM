@@ -1,11 +1,14 @@
 // src/pages/Dashboard.jsx - With separate Header component
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar"; // Import the Navbar without button
 import Header from "../components/layout/Header"; // Import the Header with search and button
 import { ChevronLeft, ChevronRight } from "lucide-react"; // Import icons for carousel
+
+// Default placeholder for missing images
+const PLACEHOLDER_IMAGE = "/placeholder-image.jpg";
 
 const Dashboard = () => {
   const [issues, setIssues] = useState([]);
@@ -15,8 +18,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   // Track which image is shown for each card (before or after)
   const [activeImageMap, setActiveImageMap] = useState({});
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    // Set isMounted to true when component mounts
+    isMounted.current = true;
+
     // Fetch community issues
     const fetchIssues = async () => {
       try {
@@ -41,23 +48,33 @@ const Dashboard = () => {
 
         if (error) throw error;
 
-        console.log("Fetched issues with profile data:", data);
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          console.log("Fetched issues with profile data:", data);
 
-        // Initialize image state map - default to showing 'after' image first
-        const initialImageMap = {};
-        data.forEach((issue) => {
-          initialImageMap[issue.id] = "after";
-        });
-        setActiveImageMap(initialImageMap);
-        setIssues(data || []);
+          // Initialize image state map - default to showing 'after' image first
+          const initialImageMap = {};
+          data.forEach((issue) => {
+            initialImageMap[issue.id] = "after";
+          });
+          setActiveImageMap(initialImageMap);
+          setIssues(data || []);
+          setLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching issues:", error.message);
-      } finally {
-        setLoading(false);
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchIssues();
+
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   // Toggle between before and after images
@@ -67,6 +84,12 @@ const Dashboard = () => {
       ...prev,
       [issueId]: prev[issueId] === "before" ? "after" : "before",
     }));
+  };
+
+  // Handle image load errors
+  const handleImageError = (e) => {
+    e.target.src = PLACEHOLDER_IMAGE;
+    e.target.onerror = null; // Prevent infinite loops
   };
 
   return (
@@ -101,9 +124,7 @@ const Dashboard = () => {
                           className="w-full h-48 object-cover"
                           src={issue.before_image_path}
                           alt="Issue Before"
-                          onError={(e) => {
-                            e.target.src = "/api/placeholder/500/300";
-                          }}
+                          onError={handleImageError}
                         />
                       </div>
                     ) : (
@@ -118,9 +139,7 @@ const Dashboard = () => {
                         className="w-full h-48 object-cover"
                         src={issue.after_image_path}
                         alt="Issue After"
-                        onError={(e) => {
-                          e.target.src = "/api/placeholder/500/300";
-                        }}
+                        onError={handleImageError}
                       />
                     </div>
                   ) : (

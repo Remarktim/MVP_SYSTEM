@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./components/auth/Login";
@@ -18,40 +18,50 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminSettings from "./pages/AdminSettings";
 import ReportDetail from "./pages/ReportDetail";
 import AuthRedirect from "./pages/AuthRedirect";
-import AdminProfile from "./pages/AdminProfile";
+import DatabaseIssues from "./pages/admin/DatabaseIssues";
 
 // Protected route component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = () => {
   const { user } = useAuth();
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
-  return children;
+  return <Outlet />;
 };
 
-// Admin route component - updated to check both user_metadata and app_metadata
-const AdminRoute = ({ children }) => {
+// Admin route component
+const AdminRoute = () => {
   const { user, isAdmin } = useAuth();
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
-  // Check for admin role in both metadata objects
-  const hasAdminRole = isAdmin || user.app_metadata?.role === "admin" || user.user_metadata?.role === "admin";
-
-  if (!hasAdminRole) {
+  if (!isAdmin) {
     console.log("Access denied: User is not an admin", {
       email: user.email,
-      metadata: user.user_metadata,
-      app_metadata: user.app_metadata,
     });
-    return <Navigate to="/dashboard" />;
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    );
   }
 
-  return children;
+  return <Outlet />;
 };
 
 function App() {
@@ -59,7 +69,7 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Use AuthRedirect component for root path */}
+          {/* Public routes */}
           <Route
             path="/"
             element={<AuthRedirect />}
@@ -81,92 +91,64 @@ function App() {
             element={<Home />}
           />
 
-          {/* Dashboard - Reports Feed */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+          {/* Protected user routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="/dashboard"
+              element={<Dashboard />}
+            />
+            <Route
+              path="/my-issues"
+              element={<UserReports />}
+            />
+            <Route
+              path="/issues/:id"
+              element={<IssueDetail />}
+            />
+            <Route
+              path="/submit-issue"
+              element={<SubmitIssue />}
+            />
+            <Route
+              path="/profile"
+              element={<Profile />}
+            />
+          </Route>
 
-          {/* My Reports Page */}
-          <Route
-            path="/my-issues"
-            element={
-              <ProtectedRoute>
-                <UserReports />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Issue Detail Page */}
-          <Route
-            path="/issues/:id"
-            element={
-              <ProtectedRoute>
-                <IssueDetail />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Submit New Issue Page */}
-          <Route
-            path="/submit-issue"
-            element={
-              <ProtectedRoute>
-                <SubmitIssue />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* User Profile Page */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Admin Routes */}
+          {/* Admin routes */}
           <Route
             path="/admin"
-            element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }>
-            <Route
-              index
-              element={<AdminDashboard />}
-            />
-            <Route
-              path="charts"
-              element={<AdminCharts />}
-            />
-            <Route
-              path="issues"
-              element={<AdminIssues />}
-            />
-            <Route
-              path="reports/:id"
-              element={<ReportDetail />}
-            />
-            <Route
-              path="users"
-              element={<AdminUsers />}
-            />
-            <Route
-              path="settings"
-              element={<AdminSettings />}
-            />
-            <Route
-              path="profile"
-              element={<AdminProfile />}
-            />
+            element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route
+                index
+                element={<AdminDashboard />}
+              />
+              <Route
+                path="charts"
+                element={<AdminCharts />}
+              />
+              <Route
+                path="issues"
+                element={<AdminIssues />}
+              />
+              <Route
+                path="reports/:id"
+                element={<ReportDetail />}
+              />
+              <Route
+                path="users"
+                element={<AdminUsers />}
+              />
+              <Route
+                path="database/issues"
+                element={<DatabaseIssues />}
+              />
+              <Route
+                path="settings"
+                element={<AdminSettings />}
+              />
+            </Route>
           </Route>
         </Routes>
       </AuthProvider>

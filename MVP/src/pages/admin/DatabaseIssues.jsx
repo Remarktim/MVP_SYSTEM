@@ -1,44 +1,68 @@
 import { useState, useEffect } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
-import { supabase } from "../supabase";
+import { supabase } from "../../supabase";
 
-const USERS_PER_PAGE = 10;
+const ISSUES_PER_PAGE = 10;
 
-export default function AdminUsers() {
-  const [users, setUsers] = useState([]);
+export default function DatabaseIssues() {
+  const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    async function fetchUsers() {
+    async function fetchIssues() {
       try {
         setLoading(true);
         setError(null);
 
-        const from = (currentPage - 1) * USERS_PER_PAGE;
-        const to = from + USERS_PER_PAGE - 1;
+        const from = (currentPage - 1) * ISSUES_PER_PAGE;
+        const to = from + ISSUES_PER_PAGE - 1;
 
-        const { data, error: fetchError } = await supabase.from("profiles").select("id, created_at, name, email, contact_number", { count: "exact" }).eq("is_admin", false).range(from, to);
+        // Fetch issues with join to get reporter names
+        const {
+          data,
+          error: fetchError,
+          count,
+        } = await supabase
+          .from("issues")
+          .select(
+            `
+            id, 
+            title, 
+            description, 
+            location, 
+            status, 
+            created_at,
+            user_id,
+            profiles(name)
+          `,
+            { count: "exact" }
+          )
+          .order("created_at", { ascending: false })
+          .range(from, to);
 
         if (fetchError) throw fetchError;
 
-        const { count, error: countError } = await supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_admin", false);
+        // Format the data to flatten the join result
+        const formattedData =
+          data?.map((issue) => ({
+            ...issue,
+            reporter_name: issue.profiles?.name || "Unknown",
+          })) || [];
 
-        if (countError) throw countError;
-
-        setUsers(data || []);
-        setTotalPages(Math.ceil((count || 0) / USERS_PER_PAGE));
+        setIssues(formattedData);
+        setTotalPages(Math.ceil((count || 0) / ISSUES_PER_PAGE));
       } catch (err) {
-        console.error("Error fetching users:", err);
-        setError("Failed to load users. " + err.message);
+        console.error("Error fetching issues:", err);
+        setError("Failed to load issues. " + err.message);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchUsers();
+    fetchIssues();
   }, [currentPage]);
 
   const handleNextPage = () => {
@@ -53,15 +77,35 @@ export default function AdminUsers() {
     }
   };
 
+  // Get color for status badge
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "open":
+      case "pending":
+      case "under review":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "in progress":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "resolved":
+      case "completed":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "rejected":
+      case "closed":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Users</h2>
+      <h2 className="text-xl font-semibold mb-4">Issues</h2>
 
       {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">{error}</div>}
 
       {loading ? (
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <div className="animate-pulse">Loading users...</div>
+          <div className="animate-pulse">Loading issues...</div>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -72,51 +116,59 @@ export default function AdminUsers() {
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avatar
+                    Reported By
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
+                    Title
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
+                    Description
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact Number
+                    Location
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Joined
+                    Status
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Reported Date
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {users.length === 0 ? (
+                {issues.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="5"
+                      colSpan="6"
                       className="px-6 py-4 text-center text-gray-500">
-                      No users found
+                      No issues found
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
+                  issues.map((issue) => (
                     <tr
-                      key={user.id}
+                      key={issue.id}
                       className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-medium">{(user.name || user.email || "?")[0].toUpperCase()}</div>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{issue.reporter_name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{issue.title || "N/A"}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                        <div className="truncate max-w-xs">{issue.description || "N/A"}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name || "N/A"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email || "N/A"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.contact_number || "N/A"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{issue.location || "N/A"}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(issue.status)}`}>{issue.status || "N/A"}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{issue.created_at ? new Date(issue.created_at).toLocaleDateString() : "N/A"}</td>
                     </tr>
                   ))
                 )}

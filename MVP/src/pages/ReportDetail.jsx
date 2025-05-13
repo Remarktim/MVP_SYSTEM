@@ -72,7 +72,6 @@ export default function ReportDetail() {
   const [afterImage, setAfterImage] = useState(null);
   const [afterImagePreview, setAfterImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [completionNotes, setCompletionNotes] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -281,11 +280,6 @@ export default function ReportDetail() {
       return;
     }
 
-    if (!completionNotes.trim()) {
-      setError("Please provide resolution notes");
-      return;
-    }
-
     setSubmitting(true);
     setError(null);
 
@@ -333,7 +327,6 @@ export default function ReportDetail() {
         .from("issues")
         .update({
           status: "Completed",
-          resolution_notes: completionNotes,
           after_image_path: afterImageUrl,
           resolved_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -351,7 +344,6 @@ export default function ReportDetail() {
       setReport({
         ...report,
         status: "Completed",
-        resolution_notes: completionNotes,
         after_image_path: afterImageUrl,
         resolved_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -576,22 +568,6 @@ export default function ReportDetail() {
           </div>
           <div className="p-6">
             <div className="mb-4">
-              <label
-                htmlFor="completionNotes"
-                className="block text-sm font-medium text-gray-700 mb-1">
-                Resolution Notes <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="completionNotes"
-                rows="3"
-                value={completionNotes}
-                onChange={(e) => setCompletionNotes(e.target.value)}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Describe how you resolved this issue..."
-              />
-            </div>
-
-            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 After Image <span className="text-red-500">*</span>
               </label>
@@ -643,9 +619,9 @@ export default function ReportDetail() {
               <button
                 type="button"
                 onClick={handleComplete}
-                disabled={submitting || !afterImage || !completionNotes.trim()}
+                disabled={submitting || !afterImage}
                 className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                  (submitting || !afterImage || !completionNotes.trim()) && "opacity-50 cursor-not-allowed"
+                  (submitting || !afterImage) && "opacity-50 cursor-not-allowed"
                 }`}>
                 {submitting ? (
                   <>
@@ -702,15 +678,6 @@ export default function ReportDetail() {
                 </div>
               </div>
             )}
-
-            {report.resolution_notes && (
-              <div className="mt-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-1">Resolution Notes</h3>
-                <p className="text-sm text-gray-600">{report.resolution_notes}</p>
-              </div>
-            )}
-
-            {report.resolved_at && <div className="mt-4 text-sm text-gray-500">Resolved on: {new Date(report.resolved_at).toLocaleDateString()}</div>}
           </div>
         </div>
       )}

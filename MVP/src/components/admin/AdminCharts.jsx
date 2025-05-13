@@ -1,7 +1,60 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { supabase, supabaseAdmin } from "../../supabase";
 
-const AdminCharts = ({ issues }) => {
+const AdminCharts = ({ issues: propIssues }) => {
   const [timeFrame, setTimeFrame] = useState("month");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [issues, setIssues] = useState([]);
+
+  // Fetch issues data if not provided through props
+  useEffect(() => {
+    if (propIssues && propIssues.length > 0) {
+      setIssues(propIssues);
+      return;
+    }
+
+    const fetchIssues = async () => {
+      setLoading(true);
+      try {
+        // Use supabase admin client to fetch all issues
+        const { data, error } = await supabase.from("issues").select("*, user:user_id(email)").order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        // Format the issues data similar to what's done in AdminDashboard
+        const formattedIssues = data.map((issue) => ({
+          ...issue,
+          reporter: {
+            name: issue.user_email || issue.user?.email || "Unknown User",
+            email: issue.user?.email || issue.user_email || "unknown@example.com",
+          },
+          status: formatStatus(issue.status),
+        }));
+
+        setIssues(formattedIssues);
+      } catch (err) {
+        console.error("Error fetching issues:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssues();
+  }, [propIssues]);
+
+  // Format status to match component expectations
+  const formatStatus = (status) => {
+    if (!status) return "pending";
+
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes("complete")) return "completed";
+    if (statusLower.includes("progress") || statusLower.includes("in-progress")) return "in-progress";
+    if (statusLower.includes("review") || statusLower.includes("pending")) return "pending";
+
+    return "pending"; // default
+  };
 
   // Helper function to get status distribution
   const getStatusDistribution = useMemo(() => {
@@ -34,8 +87,18 @@ const AdminCharts = ({ issues }) => {
   const recentActivity = useMemo(() => {
     if (!issues || issues.length === 0) return [];
 
+    // Filter issues based on timeframe
+    let filteredIssues = [...issues];
+
+    if (timeFrame === "week") {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+      filteredIssues = filteredIssues.filter((issue) => issue.updated_at && new Date(issue.updated_at) >= oneWeekAgo);
+    }
+
     // Sort issues by updated_at (most recent first) and take first 5
-    return [...issues]
+    return filteredIssues
       .sort((a, b) => {
         const dateA = a.updated_at ? new Date(a.updated_at) : new Date(0);
         const dateB = b.updated_at ? new Date(b.updated_at) : new Date(0);
@@ -49,7 +112,44 @@ const AdminCharts = ({ issues }) => {
         date: issue.updated_at ? new Date(issue.updated_at).toLocaleDateString() : "Unknown",
         user: issue.reporter?.name || "Unknown User",
       }));
-  }, [issues]);
+  }, [issues, timeFrame]);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white p-5 rounded-lg shadow border border-gray-200 flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+        <div className="bg-white p-5 rounded-lg shadow border border-gray-200 flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg
+              className="h-5 w-5 text-red-400"
+              fill="currentColor"
+              viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm leading-5 text-red-700">Error loading chart data: {error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

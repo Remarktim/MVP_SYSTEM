@@ -1,40 +1,8 @@
 import React, { memo, useMemo, useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FiGithub, FiMenu } from "react-icons/fi";
-import { IoNotificationsOutline } from "react-icons/io5";
-import { IoMoonOutline, IoSunnyOutline } from "react-icons/io5";
 import { useAuth } from "../../hooks/useAuth";
-import { ShieldCheck, Home } from "lucide-react";
-
-// ========== Notifications Menu ==========
-export const NotificationsMenu = memo(({ open, handleClose }) => {
-  if (!open) return null;
-
-  return (
-    <div className="absolute right-0 mt-1 w-72 bg-white rounded-md shadow-lg z-50 overflow-hidden">
-      <div className="max-h-[300px] overflow-y-auto">
-        <div
-          className="py-2 px-4 hover:bg-gray-50 cursor-pointer"
-          onClick={handleClose}>
-          2 new notifications
-        </div>
-        <div
-          className="py-2 px-4 hover:bg-gray-50 cursor-pointer"
-          onClick={handleClose}>
-          System update completed
-        </div>
-        <div className="border-t border-gray-100"></div>
-        <div
-          className="py-2 px-4 text-center text-indigo-600 hover:bg-gray-50 cursor-pointer"
-          onClick={handleClose}>
-          View all notifications
-        </div>
-      </div>
-    </div>
-  );
-});
-
-NotificationsMenu.displayName = "NotificationsMenu";
+import { Home } from "lucide-react";
 
 // ========== User Profile Menu ==========
 export const UserProfileMenu = memo(({ open, handleClose }) => {
@@ -98,7 +66,7 @@ export const GitHubIcon = memo(() => <FiGithub className="h-5 w-5" />);
 
 GitHubIcon.displayName = "GitHubIcon";
 
-const TopNavBar = memo(({ open, isMobile, currentPage, handleDrawerCollapse, handleDrawerToggle, handleThemeToggle, handleNotifMenu, isDarkMode, notifAnchorEl, handleNotifClose }) => {
+const TopNavBar = memo(({ open, isMobile, currentPage, handleDrawerCollapse, handleDrawerToggle }) => {
   const { user, signOut, isAdmin } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const trigger = useRef(null);
@@ -152,41 +120,17 @@ const TopNavBar = memo(({ open, isMobile, currentPage, handleDrawerCollapse, han
           <h1 className="text-lg font-medium text-gray-800 flex items-center">{currentPage}</h1>
         </div>
 
-        {/* Right Side: Actions & User Profile */}
+        {/* Right Side: User Profile Only */}
         <div className="flex items-center">
-          {/* Theme Toggle */}
-          <button
-            className="p-2 text-gray-700 hover:bg-gray-100 rounded-full ml-1"
-            onClick={handleThemeToggle}
-            title={isDarkMode ? "Light Mode" : "Dark Mode"}>
-            {isDarkMode ? <IoSunnyOutline className="h-5 w-5" /> : <IoMoonOutline className="h-5 w-5" />}
-          </button>
-
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              className="p-2 text-gray-700 hover:bg-gray-100 rounded-full ml-1"
-              onClick={handleNotifMenu}
-              title="Notifications">
-              <div className="relative">
-                <IoNotificationsOutline className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs font-medium rounded-full bg-indigo-100 text-indigo-700">2</span>
-              </div>
-            </button>
-            {Boolean(notifAnchorEl) && (
-              <NotificationsMenu
-                open={Boolean(notifAnchorEl)}
-                handleClose={handleNotifClose}
-              />
-            )}
-          </div>
+          {/* Removed Theme Toggle */}
+          {/* Removed Notifications */}
 
           {/* User Avatar */}
           <div className="relative">
             <button
               ref={trigger}
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center ml-2">
+              className="flex items-center">
               <div className="relative w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white hover:bg-indigo-700">
                 <span className="text-lg font-medium">{userInitial}</span>
                 <span className="absolute -right-0.5 -top-0.5 block h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
@@ -213,11 +157,6 @@ const TopNavBar = memo(({ open, isMobile, currentPage, handleDrawerCollapse, han
                 </div>
               </div>
               <div>
-                <Link
-                  to={isAdmin ? "/admin/profile" : "/profile"}
-                  className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  View profile
-                </Link>
                 <Link
                   to="/dashboard"
                   className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-gray-50">
