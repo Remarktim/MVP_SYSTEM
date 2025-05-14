@@ -118,10 +118,20 @@ const AdminCharts = ({ issues: propIssues }) => {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white p-5 rounded-lg shadow border border-gray-200 flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div
+            className="inline-block w-8 h-8 border-b-2 border-indigo-600 rounded-full will-change-transform"
+            style={{
+              animation: "spin 1s ease-in-out infinite",
+              "@keyframes spin": { "0%": { transform: "rotate(0deg)" }, "100%": { transform: "rotate(360deg)" } },
+            }}></div>
         </div>
         <div className="bg-white p-5 rounded-lg shadow border border-gray-200 flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div
+            className="inline-block w-8 h-8 border-b-2 border-indigo-600 rounded-full will-change-transform"
+            style={{
+              animation: "spin 1s ease-in-out infinite",
+              "@keyframes spin": { "0%": { transform: "rotate(0deg)" }, "100%": { transform: "rotate(360deg)" } },
+            }}></div>
         </div>
       </div>
     );
@@ -166,8 +176,11 @@ const AdminCharts = ({ issues: propIssues }) => {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
-                className="bg-yellow-400 h-2.5 rounded-full"
-                style={{ width: `${pendingPercent}%` }}></div>
+                className="bg-yellow-400 h-2.5 rounded-full transform translate-z-0 will-change-transform"
+                style={{
+                  width: `${pendingPercent}%`,
+                  transition: "width 0.4s ease-out",
+                }}></div>
             </div>
           </div>
 
@@ -179,8 +192,11 @@ const AdminCharts = ({ issues: propIssues }) => {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
-                className="bg-indigo-600 h-2.5 rounded-full"
-                style={{ width: `${inProgressPercent}%` }}></div>
+                className="bg-indigo-600 h-2.5 rounded-full transform translate-z-0 will-change-transform"
+                style={{
+                  width: `${inProgressPercent}%`,
+                  transition: "width 0.4s ease-out",
+                }}></div>
             </div>
           </div>
 
@@ -192,8 +208,11 @@ const AdminCharts = ({ issues: propIssues }) => {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
-                className="bg-green-500 h-2.5 rounded-full"
-                style={{ width: `${completedPercent}%` }}></div>
+                className="bg-green-500 h-2.5 rounded-full transform translate-z-0 will-change-transform"
+                style={{
+                  width: `${completedPercent}%`,
+                  transition: "width 0.4s ease-out",
+                }}></div>
             </div>
           </div>
         </div>

@@ -141,7 +141,11 @@ export default function AdminDashboard() {
           {loading ? (
             <div className="text-center py-5">
               <div
-                className="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-blue-600 rounded-full"
+                className="inline-block w-8 h-8 border-4 border-current border-t-transparent text-blue-600 rounded-full will-change-transform"
+                style={{
+                  animation: "spin 1s linear infinite",
+                  "@keyframes spin": { "0%": { transform: "rotate(0deg)" }, "100%": { transform: "rotate(360deg)" } },
+                }}
                 role="status">
                 <span className="sr-only">Loading...</span>
               </div>
@@ -163,7 +167,11 @@ export default function AdminDashboard() {
             {loading ? (
               <div className="text-center py-10">
                 <div
-                  className="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent text-blue-600 rounded-full"
+                  className="inline-block w-8 h-8 border-4 border-current border-t-transparent text-blue-600 rounded-full will-change-transform"
+                  style={{
+                    animation: "spin 1s linear infinite",
+                    "@keyframes spin": { "0%": { transform: "rotate(0deg)" }, "100%": { transform: "rotate(360deg)" } },
+                  }}
                   role="status">
                   <span className="sr-only">Loading...</span>
                 </div>

@@ -12,6 +12,7 @@ const PLACEHOLDER_IMAGE = "/placeholder-image.jpg";
 
 const Dashboard = () => {
   const [issues, setIssues] = useState([]);
+  const [filteredIssues, setFilteredIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   // eslint-disable-next-line no-unused-vars
   const { user } = useAuth();
@@ -59,6 +60,7 @@ const Dashboard = () => {
           });
           setActiveImageMap(initialImageMap);
           setIssues(data || []);
+          setFilteredIssues(data || []);
           setLoading(false);
         }
       } catch (error) {
@@ -92,13 +94,35 @@ const Dashboard = () => {
     e.target.onerror = null; // Prevent infinite loops
   };
 
+  // Handle search functionality
+  const handleSearch = (searchTerm) => {
+    if (!searchTerm || searchTerm.trim() === "") {
+      setFilteredIssues(issues);
+      return;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    const filtered = issues.filter(
+      (issue) =>
+        issue.title?.toLowerCase().includes(searchLower) ||
+        issue.description?.toLowerCase().includes(searchLower) ||
+        issue.location?.toLowerCase().includes(searchLower) ||
+        issue.profiles?.name?.toLowerCase().includes(searchLower)
+    );
+
+    setFilteredIssues(filtered);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 pb-14 md:pb-0">
       {/* Navbar */}
       <Navbar />
 
       {/* Header with Search and Report Button */}
-      <Header title="Newsfeed Reports" />
+      <Header
+        title="Newsfeed Reports"
+        onSearch={handleSearch}
+      />
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -107,9 +131,9 @@ const Dashboard = () => {
           <div className="text-center py-10">
             <div className="spinner">Loading...</div>
           </div>
-        ) : issues.length > 0 ? (
+        ) : filteredIssues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {issues.map((issue) => (
+            {filteredIssues.map((issue) => (
               <div
                 key={issue.id}
                 className="max-w-md mx-auto rounded-xl overflow-hidden shadow-md hover:shadow-lg bg-white cursor-pointer"
@@ -195,7 +219,7 @@ const Dashboard = () => {
                 {/* Content section */}
                 <div className="p-4">
                   <h3 className="text-lg font-medium mb-2">{issue.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{issue.description}</p>
+                  <p className="text-gray-600 text-sm mb-3 overflow-y-auto break-words leading-relaxed max-h-20 line-clamp-3">{issue.description}</p>
                   <p className="text-gray-500 text-xs mb-4">📍 {issue.location || "No location specified"}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500 text-xs">Posted by {issue.profiles?.name || "anonymous"}</span>
@@ -214,8 +238,8 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="text-center py-10 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">No reports yet</h3>
-            <p className="mt-1 text-sm text-gray-500">Community all issues will appear here.</p>
+            <h3 className="text-lg font-medium text-gray-900">No matching reports found</h3>
+            <p className="mt-1 text-sm text-gray-500">Try using different search terms or clear the search field.</p>
           </div>
         )}
       </main>

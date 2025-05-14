@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Search } from "lucide-react";
 
-const Header = ({ title = "Completed Reports", showSearch = true }) => {
+const Header = ({ title = "Completed Reports", showSearch = true, onSearch = null }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
 
@@ -12,8 +12,20 @@ const Header = ({ title = "Completed Reports", showSearch = true }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Implement search functionality here
-    console.log("Searching for:", searchTerm);
+    // Call the onSearch prop function if it exists
+    if (onSearch) {
+      onSearch(searchTerm);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // Perform real-time search if onSearch exists and value length is at least 2 characters or empty
+    if (onSearch && (value.length >= 2 || value === "")) {
+      onSearch(value);
+    }
   };
 
   return (
@@ -34,7 +46,7 @@ const Header = ({ title = "Completed Reports", showSearch = true }) => {
                     type="text"
                     placeholder="Search reports..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={handleSearchChange}
                     className="w-full py-2 px-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                   <button

@@ -23,7 +23,7 @@ const StatCards = ({ stats }) => {
               <div className="text-sm font-medium text-gray-500 truncate">Total Issues</div>
               <div className="mt-1 text-3xl font-semibold text-gray-900">{displayStats.total.count}</div>
             </div>
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center transform will-change-transform">
               <DocumentIcon className="w-6 h-6 text-blue-600" />
             </div>
           </div>
@@ -38,7 +38,7 @@ const StatCards = ({ stats }) => {
               <div className="text-sm font-medium text-gray-500 truncate">Pending</div>
               <div className="mt-1 text-3xl font-semibold text-gray-900">{displayStats.pending.count}</div>
             </div>
-            <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center transform will-change-transform">
               <ClipboardDocumentCheckIcon className="w-6 h-6 text-yellow-600" />
             </div>
           </div>
@@ -53,7 +53,7 @@ const StatCards = ({ stats }) => {
               <div className="text-sm font-medium text-gray-500 truncate">In Progress</div>
               <div className="mt-1 text-3xl font-semibold text-gray-900">{displayStats.inProgress.count}</div>
             </div>
-            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center transform will-change-transform">
               <ClockIcon className="w-6 h-6 text-indigo-600" />
             </div>
           </div>
@@ -68,7 +68,7 @@ const StatCards = ({ stats }) => {
               <div className="text-sm font-medium text-gray-500 truncate">Completed</div>
               <div className="mt-1 text-3xl font-semibold text-gray-900">{displayStats.completed.count}</div>
             </div>
-            <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center transform will-change-transform">
               <DocumentCheckIcon className="w-6 h-6 text-green-600" />
             </div>
           </div>

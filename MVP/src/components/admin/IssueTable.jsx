@@ -58,7 +58,7 @@ const IssueTable = ({ issues }) => {
   };
 
   // Helper to truncate long text
-  const truncateText = (text, maxLength = 50) => {
+  const truncateText = (text, maxLength = 100) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
@@ -87,7 +87,7 @@ const IssueTable = ({ issues }) => {
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase  truncate">
               Description
             </th>
             <th
@@ -126,7 +126,7 @@ const IssueTable = ({ issues }) => {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-500 max-w-xs">{truncateText(issue.description, 100)}</div>
+                  <div className="text-sm text-gray-500 max-w-xs line-clamp-2 overflow-hidden">{truncateText(issue.description, 100)}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500">{issue.location || "N/A"}</div>

@@ -11,7 +11,9 @@ import DropdownStatusFilter from "../components/layout/DropdownStatusFilter";
 const UserReports = () => {
   const [userIssues, setUserIssues] = useState([]);
   const [filteredIssues, setFilteredIssues] = useState([]);
+  const [displayIssues, setDisplayIssues] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [issueToDelete, setIssueToDelete] = useState(null);
@@ -41,6 +43,7 @@ const UserReports = () => {
       console.log("Fetched user issues:", data);
       setUserIssues(data || []);
       setFilteredIssues(data || []);
+      setDisplayIssues(data || []);
     } catch (error) {
       console.error("Error fetching user issues:", error.message);
       setError("Failed to load your reports. Please try again.");
@@ -70,6 +73,21 @@ const UserReports = () => {
     }
   }, [activeFilter, userIssues]);
 
+  // Apply search on filtered issues whenever filteredIssues or searchTerm changes
+  useEffect(() => {
+    if (!searchTerm || searchTerm.trim() === "") {
+      setDisplayIssues(filteredIssues);
+      return;
+    }
+
+    const searchLower = searchTerm.toLowerCase();
+    const searched = filteredIssues.filter(
+      (issue) => issue.title?.toLowerCase().includes(searchLower) || issue.description?.toLowerCase().includes(searchLower) || issue.location?.toLowerCase().includes(searchLower)
+    );
+
+    setDisplayIssues(searched);
+  }, [filteredIssues, searchTerm]);
+
   // Get status color
   const getStatusColor = (status) => {
     switch (status) {
@@ -89,6 +107,11 @@ const UserReports = () => {
     e.stopPropagation(); // Prevent card click
     setIssueToDelete(issue);
     setDeleteModalOpen(true);
+  };
+
+  // Handle search functionality
+  const handleSearch = (term) => {
+    setSearchTerm(term);
   };
 
   // Function to extract the file path from a URL
@@ -197,7 +220,10 @@ const UserReports = () => {
       <Navbar />
 
       {/* Header with Search and Report Button */}
-      <Header title="My Reports" />
+      <Header
+        title="My Reports"
+        onSearch={handleSearch}
+      />
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
@@ -228,9 +254,9 @@ const UserReports = () => {
           <div className="text-center py-10">
             <div className="spinner">Loading...</div>
           </div>
-        ) : filteredIssues.length > 0 ? (
+        ) : displayIssues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredIssues.map((issue) => (
+            {displayIssues.map((issue) => (
               <div
                 key={issue.id}
                 className="max-w-md rounded-xl overflow-hidden shadow-md hover:shadow-lg bg-white cursor-pointer"
@@ -258,7 +284,7 @@ const UserReports = () => {
                 {/* Content section */}
                 <div className="p-4">
                   <h3 className="text-lg font-medium mb-2">{issue.title}</h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{issue.description}</p>
+                  <p className="text-gray-600 text-sm mb-3 overflow-y-auto break-words leading-relaxed max-h-20 line-clamp-3">{issue.description}</p>
                   <p className="text-gray-500 text-xs mb-4">📍 {issue.location || "No location specified"}</p>
                   <p className="text-gray-500 text-xs mb-4">📅 Reported: {new Date(issue.created_at).toLocaleDateString()}</p>
 
@@ -288,9 +314,15 @@ const UserReports = () => {
           </div>
         ) : (
           <div className="text-center py-10 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">{activeFilter === "all" ? "You haven't reported any issues yet" : `No ${activeFilter.replace("-", " ")} reports found`}</h3>
+            <h3 className="text-lg font-medium text-gray-900">
+              {searchTerm ? "No matching reports found" : activeFilter === "all" ? "You haven't reported any issues yet" : `No ${activeFilter.replace("-", " ")} reports found`}
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
-              {activeFilter === "all" ? "Create your first report by clicking 'Report New Issue'." : "Try selecting a different filter or create a new report."}
+              {searchTerm
+                ? "Try using different search terms or clear the search field."
+                : activeFilter === "all"
+                ? "Create your first report by clicking 'Report New Issue'."
+                : "Try selecting a different filter or create a new report."}
             </p>
           </div>
         )}

@@ -469,7 +469,7 @@ export default function ReportDetail() {
 
           <div className="mt-2">
             <h2 className="text-sm font-medium text-gray-700 mb-1">Description</h2>
-            <p className="text-sm text-gray-600">{report.description}</p>
+            <p className="text-sm text-gray-600 whitespace-pre-line break-words leading-relaxed max-h-[300px] overflow-y-auto pr-2">{report.description}</p>
           </div>
 
           <div className="mt-4">

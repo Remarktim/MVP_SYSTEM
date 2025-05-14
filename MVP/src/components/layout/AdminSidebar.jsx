@@ -39,9 +39,8 @@ export const databaseItems = [
 
 // ========== Brand Logo Component ==========
 export const BrandLogo = memo(() => (
-  <div className="flex items-center">
-    <BiSolidDiamond className="text-indigo-600 mr-2 h-5 w-5" />
-    <span className="text-base font-semibold whitespace-nowrap">Mantis</span>
+  <div className="flex items-center ">
+    <span className="text-base text-center font-semibold whitespace-nowrap">Community Connect MVP</span>
   </div>
 ));
 

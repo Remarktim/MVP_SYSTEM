@@ -162,7 +162,7 @@ export default function DatabaseIssues() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{issue.reporter_name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{issue.title || "N/A"}</td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                        <div className="truncate max-w-xs">{issue.description || "N/A"}</div>
+                        <div className="line-clamp-2 overflow-hidden max-w-xs">{issue.description || "N/A"}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{issue.location || "N/A"}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
