@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Header from "../components/layout/Header";
+import { toast } from "react-hot-toast";
 
 const SubmitIssue = () => {
   const [title, setTitle] = useState("");
@@ -13,8 +14,6 @@ const SubmitIssue = () => {
   const [beforeImage, setBeforeImage] = useState(null);
   const [beforeImagePreview, setBeforeImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -27,7 +26,7 @@ const SubmitIssue = () => {
     // Check file size (5MB limit)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
-      setError("Image size must be less than 5MB.");
+      toast.error("Image size must be less than 5MB.", { position: "top-center" });
       return;
     }
 
@@ -37,32 +36,27 @@ const SubmitIssue = () => {
       setBeforeImagePreview(reader.result);
     };
     reader.readAsDataURL(file);
-
-    // Clear any previous errors when a valid image is selected
-    if (error && error.includes("Image size")) {
-      setError(null);
-    }
   };
 
   // Validate form inputs
   const validateForm = () => {
     if (!title.trim()) {
-      setError("Please enter a title.");
+      toast.error("Please enter a title.", { position: "top-center" });
       return false;
     }
 
     if (!description.trim()) {
-      setError("Please enter a description.");
+      toast.error("Please enter a description.", { position: "top-center" });
       return false;
     }
 
     if (!location.trim()) {
-      setError("Please enter a location.");
+      toast.error("Please enter a location.", { position: "top-center" });
       return false;
     }
 
     if (!beforeImage) {
-      setError("Please upload an image.");
+      toast.error("Please upload an image.", { position: "top-center" });
       return false;
     }
 
@@ -79,8 +73,6 @@ const SubmitIssue = () => {
     }
 
     setSubmitting(true);
-    setError(null);
-    setMessage(null);
 
     try {
       // First, upload the image if we have one
@@ -112,7 +104,7 @@ const SubmitIssue = () => {
             throw new Error("Could not get public URL for uploaded image");
           }
         } catch (imageError) {
-          setError(`Error uploading image: ${imageError.message}`);
+          toast.error(`Error uploading image: ${imageError.message}`, { position: "top-center" });
           setSubmitting(false);
           return; // Stop form submission if image upload fails
         }
@@ -139,14 +131,14 @@ const SubmitIssue = () => {
         throw new Error(`Failed to create issue: ${insertError.message}`);
       }
 
-      setMessage("Issue submitted successfully!");
+      toast.success("Issue submitted successfully!", { position: "top-center" });
 
       // Success! Wait a moment before redirecting
       setTimeout(() => {
         navigate("/my-issues");
       }, 2000);
     } catch (error) {
-      setError(error.message);
+      toast.error(error.message, { position: "top-center" });
     } finally {
       setSubmitting(false);
     }
@@ -169,18 +161,6 @@ const SubmitIssue = () => {
           <div className="mb-6">
             <p className="mt-1 text-sm text-gray-500">Please provide details about the issue you'd like to report.</p>
           </div>
-
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-              <p>{error}</p>
-            </div>
-          )}
-
-          {message && (
-            <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700">
-              <p>{message}</p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">

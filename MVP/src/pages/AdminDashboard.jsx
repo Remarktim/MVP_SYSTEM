@@ -63,9 +63,10 @@ export default function AdminDashboard() {
     const statusLower = status.toLowerCase();
     if (statusLower.includes("complete")) return "completed";
     if (statusLower.includes("progress") || statusLower.includes("in-progress")) return "in-progress";
+    if (statusLower.includes("reject")) return "rejected";
     if (statusLower.includes("review") || statusLower.includes("pending")) return "pending";
 
-    return "pending"; // default
+    return "pending"; // default for any other unhandled statuses
   };
 
   // Calculate stats from issues data

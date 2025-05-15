@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabase";
 import { useAuth } from "../../hooks/useAuth";
 import ForgotPasswordModal from "./ForgotPasswordModal";
+import { toast } from "react-hot-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,6 +13,9 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [isEmailNotConfirmed, setIsEmailNotConfirmed] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
 
@@ -20,10 +24,11 @@ const Login = () => {
     if (user) {
       // Check if user is admin and redirect accordingly
       if (isAdmin) {
-        console.log("Admin user detected, redirecting to admin dashboard");
+        // console.log("Admin user detected, redirecting to admin dashboard"); // Keep for debugging if needed
         navigate("/admin");
       } else {
-        console.log("Regular user detected, redirecting to user dashboard");
+        // console.log("Regular user detected, redirecting to user dashboard"); // Keep for debugging if needed
+        // Toast is shown on explicit login, not on initial load/redirect
         navigate("/dashboard");
       }
     }
@@ -33,19 +38,75 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setIsEmailNotConfirmed(false);
+    setResendSuccess(false);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // console.log("Attempting to sign in with:", email); // Keep for debugging if needed
+
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+        // Renamed error to loginError
         email,
         password,
       });
 
-      if (error) throw error;
-      // Successful login will be handled by the Auth state listener
-    } catch (error) {
-      setError(error.message);
+      if (loginError) {
+        // console.error("Login error:", loginError); // Keep for debugging if needed
+
+        // Handle specific error cases
+        if (loginError.message.includes("Email not confirmed")) {
+          setIsEmailNotConfirmed(true);
+          setError("Your email address has not been confirmed. Please check your inbox for a confirmation email or click below to resend it.");
+        } else if (loginError.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password. Please try again.");
+        } else {
+          throw loginError;
+        }
+        return;
+      }
+
+      // console.log("Sign in successful:", data); // Keep for debugging if needed
+      // Successful login will trigger the useEffect above due to `user` state change.
+      // We show the toast here before that happens.
+      if (data.user) {
+        // Check if user data is present in the response
+        toast.success("Welcome!", { position: "top-center" });
+      }
+      // Navigation will be handled by the useEffect hook when `user` state updates
+    } catch (catchError) {
+      // Renamed error to catchError
+      console.error("Login exception:", catchError);
+      setError(catchError.message || "An error occurred during login. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendConfirmationEmail = async () => {
+    if (!email) {
+      setError("Please enter your email address");
+      return;
+    }
+
+    setResendingEmail(true);
+    setResendSuccess(false);
+
+    try {
+      // Send a new confirmation email
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email,
+      });
+
+      if (error) throw error;
+
+      setResendSuccess(true);
+      setError(null);
+    } catch (error) {
+      console.error("Error resending confirmation email:", error);
+      setError(error.message || "Failed to resend confirmation email. Please try again.");
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -71,6 +132,20 @@ const Login = () => {
             <h2 className="text-slate-900 text-center text-3xl font-semibold">Sign in</h2>
 
             {error && <div className="mt-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+
+            {resendSuccess && <div className="mt-4 rounded-md bg-green-50 p-4 text-sm text-green-700">Confirmation email has been resent. Please check your inbox and follow the instructions.</div>}
+
+            {isEmailNotConfirmed && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={handleResendConfirmationEmail}
+                  disabled={resendingEmail}
+                  className="w-full py-2 px-4 text-sm font-medium text-indigo-700 bg-indigo-50 rounded-md hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  {resendingEmail ? "Sending..." : "Resend confirmation email"}
+                </button>
+              </div>
+            )}
 
             <form
               className="mt-12 space-y-6"
@@ -184,6 +259,14 @@ const Login = () => {
                   Register here
                 </a>
               </p>
+
+              <div className="border-t border-gray-200 mt-6 pt-4">
+                <a
+                  href="/admin-login"
+                  className="block w-full text-center text-sm text-gray-600 hover:text-indigo-600 transition">
+                  Administrator Access
+                </a>
+              </div>
             </form>
           </div>
         </div>

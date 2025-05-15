@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
+import { Toaster } from "react-hot-toast";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
 import Home from "./pages/Home";
@@ -19,6 +20,9 @@ import AdminSettings from "./pages/AdminSettings";
 import ReportDetail from "./pages/ReportDetail";
 import AuthRedirect from "./pages/AuthRedirect";
 import DatabaseIssues from "./pages/admin/DatabaseIssues";
+import AdminProfile from "./pages/admin/AdminProfile";
+import AdminLogin from "./components/admin/AdminLogin";
+import AdminRoute from "./components/admin/AdminRoute";
 
 // Protected route component
 const ProtectedRoute = () => {
@@ -36,38 +40,11 @@ const ProtectedRoute = () => {
   return <Outlet />;
 };
 
-// Admin route component
-const AdminRoute = () => {
-  const { user, isAdmin } = useAuth();
-
-  if (!user) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
-
-  if (!isAdmin) {
-    console.log("Access denied: User is not an admin", {
-      email: user.email,
-    });
-    return (
-      <Navigate
-        to="/dashboard"
-        replace
-      />
-    );
-  }
-
-  return <Outlet />;
-};
-
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <Toaster position="top-right" />
         <Routes>
           {/* Public routes */}
           <Route
@@ -89,6 +66,12 @@ function App() {
           <Route
             path="/home"
             element={<Home />}
+          />
+
+          {/* Admin Login - separate from user login */}
+          <Route
+            path="/admin-login"
+            element={<AdminLogin />}
           />
 
           {/* Protected user routes */}
@@ -115,11 +98,11 @@ function App() {
             />
           </Route>
 
-          {/* Admin routes */}
-          <Route
-            path="/admin"
-            element={<AdminRoute />}>
-            <Route element={<AdminLayout />}>
+          {/* Admin routes - using new AdminRoute component */}
+          <Route element={<AdminRoute />}>
+            <Route
+              path="/admin"
+              element={<AdminLayout />}>
               <Route
                 index
                 element={<AdminDashboard />}
@@ -143,6 +126,10 @@ function App() {
               <Route
                 path="database/issues"
                 element={<DatabaseIssues />}
+              />
+              <Route
+                path="profile"
+                element={<AdminProfile />}
               />
               <Route
                 path="settings"

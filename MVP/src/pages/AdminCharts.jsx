@@ -75,7 +75,7 @@ const renderActiveShape = (props) => {
   );
 };
 
-const COLORS = ["#6366f1", "#f97316", "#10b981", "#ef4444"];
+const COLORS = ["#f59e0b", "#4f46e5", "#10b981", "#ef4444"];
 
 export default function AdminCharts() {
   // State for active slice in the pie chart
@@ -263,6 +263,7 @@ export default function AdminCharts() {
       completed: 0,
       inProgress: 0,
       pending: 0,
+      rejected: 0,
     }));
 
     // Count issues by status and month
@@ -276,9 +277,11 @@ export default function AdminCharts() {
       if (monthData) {
         if (status.includes("complete")) {
           monthData.completed++;
-        } else if (status.includes("progress") || status === "in-progress") {
+        } else if (status.includes("progress") || status.includes("in-progress")) {
           monthData.inProgress++;
-        } else {
+        } else if (status.includes("reject")) {
+          monthData.rejected++;
+        } else if (status.includes("pending") || status.includes("review")) {
           monthData.pending++;
         }
       }
@@ -407,7 +410,10 @@ export default function AdminCharts() {
                     dataKey="name"
                     tick={{ fill: "#6b7280" }}
                   />
-                  <YAxis tick={{ fill: "#6b7280" }} />
+                  <YAxis
+                    tick={{ fill: "#6b7280" }}
+                    allowDecimals={false}
+                  />
                   <ReTooltip
                     contentStyle={{
                       backgroundColor: "rgba(255, 255, 255, 0.8)",
@@ -476,7 +482,10 @@ export default function AdminCharts() {
                     dataKey="name"
                     tick={{ fill: "#6b7280" }}
                   />
-                  <YAxis tick={{ fill: "#6b7280" }} />
+                  <YAxis
+                    tick={{ fill: "#6b7280" }}
+                    allowDecimals={false}
+                  />
                   <ReTooltip
                     contentStyle={{
                       backgroundColor: "rgba(255, 255, 255, 0.8)",
@@ -575,17 +584,17 @@ export default function AdminCharts() {
                       y2="1">
                       <stop
                         offset="5%"
-                        stopColor="#f97316"
+                        stopColor="#4f46e5"
                         stopOpacity={0.8}
                       />
                       <stop
                         offset="95%"
-                        stopColor="#f97316"
+                        stopColor="#4f46e5"
                         stopOpacity={0.2}
                       />
                     </linearGradient>
                     <linearGradient
-                      id="pendingGradient"
+                      id="rejectedGradient"
                       x1="0"
                       y1="0"
                       x2="0"
@@ -601,6 +610,23 @@ export default function AdminCharts() {
                         stopOpacity={0.2}
                       />
                     </linearGradient>
+                    <linearGradient
+                      id="newPendingGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor="#f59e0b"
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor="#f59e0b"
+                        stopOpacity={0.2}
+                      />
+                    </linearGradient>
                   </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -610,7 +636,10 @@ export default function AdminCharts() {
                     dataKey="month"
                     tick={{ fill: "#6b7280" }}
                   />
-                  <YAxis tick={{ fill: "#6b7280" }} />
+                  <YAxis
+                    tick={{ fill: "#6b7280" }}
+                    allowDecimals={false}
+                  />
                   <ReTooltip
                     contentStyle={{
                       backgroundColor: "rgba(255, 255, 255, 0.8)",
@@ -623,7 +652,6 @@ export default function AdminCharts() {
                   <Area
                     type="monotone"
                     dataKey="completed"
-                    stackId="1"
                     stroke="#10b981"
                     fill="url(#completedGradient)"
                     name="Completed"
@@ -632,21 +660,28 @@ export default function AdminCharts() {
                   />
                   <Area
                     type="monotone"
-                    dataKey="inProgress"
-                    stackId="1"
-                    stroke="#f97316"
-                    fill="url(#inProgressGradient)"
-                    name="In Progress"
+                    dataKey="rejected"
+                    stroke="#ef4444"
+                    fill="url(#rejectedGradient)"
+                    name="Rejected"
                     animationDuration={2000}
                     animationEasing="ease-in-out"
                   />
                   <Area
                     type="monotone"
                     dataKey="pending"
-                    stackId="1"
-                    stroke="#ef4444"
-                    fill="url(#pendingGradient)"
+                    stroke="#f59e0b"
+                    fill="url(#newPendingGradient)"
                     name="Pending"
+                    animationDuration={2000}
+                    animationEasing="ease-in-out"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="inProgress"
+                    stroke="#4f46e5"
+                    fill="url(#inProgressGradient)"
+                    name="In Progress"
                     animationDuration={2000}
                     animationEasing="ease-in-out"
                   />

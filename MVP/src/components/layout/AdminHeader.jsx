@@ -1,17 +1,26 @@
 import React, { memo, useMemo, useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiGithub, FiMenu } from "react-icons/fi";
 import { useAuth } from "../../hooks/useAuth";
+import { adminSignOut, getCurrentAdmin } from "../../utils/adminAuth";
 import { Home } from "lucide-react";
 
 // ========== User Profile Menu ==========
 export const UserProfileMenu = memo(({ open, handleClose }) => {
   const { user, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   // User profile info
   const fullName = user?.user_metadata?.full_name || "User";
   const userEmail = user?.email || "";
   const userInitial = (fullName || "U").charAt(0).toUpperCase();
+
+  // Handle admin sign out
+  const handleAdminSignOut = async () => {
+    await adminSignOut();
+    handleClose();
+    navigate("/admin-login");
+  };
 
   if (!open) return null;
 
@@ -47,10 +56,7 @@ export const UserProfileMenu = memo(({ open, handleClose }) => {
           </span>
         </Link>
         <button
-          onClick={() => {
-            signOut();
-            handleClose();
-          }}
+          onClick={handleAdminSignOut}
           className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-gray-50">
           Sign out
         </button>
@@ -67,14 +73,26 @@ export const GitHubIcon = memo(() => <FiGithub className="h-5 w-5" />);
 GitHubIcon.displayName = "GitHubIcon";
 
 const TopNavBar = memo(({ open, isMobile, currentPage, handleDrawerCollapse, handleDrawerToggle }) => {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const trigger = useRef(null);
   const dropdown = useRef(null);
 
+  // Get admin user from our dedicated admin auth system
+  const adminUser = getCurrentAdmin();
+
   // User profile info
-  const fullName = user?.user_metadata?.full_name || "User";
-  const userInitial = (fullName || "U").charAt(0).toUpperCase();
+  const fullName = adminUser?.user_metadata?.full_name || user?.user_metadata?.name || "Admin";
+  const userEmail = adminUser?.email || user?.email || "";
+  const userInitial = (fullName || "A").charAt(0).toUpperCase();
+
+  // Handle admin sign out
+  const handleAdminSignOut = async () => {
+    await adminSignOut();
+    setDropdownOpen(false);
+    navigate("/admin-login");
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -122,9 +140,6 @@ const TopNavBar = memo(({ open, isMobile, currentPage, handleDrawerCollapse, han
 
         {/* Right Side: User Profile Only */}
         <div className="flex items-center">
-          {/* Removed Theme Toggle */}
-          {/* Removed Notifications */}
-
           {/* User Avatar */}
           <div className="relative">
             <button
@@ -153,23 +168,17 @@ const TopNavBar = memo(({ open, isMobile, currentPage, handleDrawerCollapse, han
                   </div>
                 </div>
                 <div className="mt-1 py-2 px-3 bg-gray-50 rounded-md">
-                  <p className="text-sm text-gray-500 break-all">{user?.email || ""}</p>
+                  <p className="text-sm text-gray-500 break-all">{userEmail}</p>
                 </div>
               </div>
               <div>
                 <Link
-                  to="/dashboard"
-                  className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-gray-50">
-                  <span className="flex items-center">
-                    <Home className="mr-2 h-4 w-4" />
-                    User Dashboard
-                  </span>
+                  to="/admin/profile"
+                  className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  View profile
                 </Link>
                 <button
-                  onClick={() => {
-                    signOut();
-                    setDropdownOpen(false);
-                  }}
+                  onClick={handleAdminSignOut}
                   className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-gray-50">
                   Sign out
                 </button>

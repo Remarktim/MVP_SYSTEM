@@ -8,6 +8,21 @@ import compression from "vite-plugin-compression";
 // Get directory path using import.meta.url
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Custom plugin to set JSX MIME types
+const jsxMimeTypePlugin = () => ({
+  name: "jsx-mime-type-plugin",
+  configureServer(server) {
+    return () => {
+      server.middlewares.use((req, res, next) => {
+        if (req.url && req.url.endsWith(".jsx")) {
+          res.setHeader("Content-Type", "text/jsx; charset=utf-8");
+        }
+        next();
+      });
+    };
+  },
+});
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -18,11 +33,20 @@ export default defineConfig({
       ext: ".gz",
       threshold: 10240, // Only compress files > 10kb
     }),
+    jsxMimeTypePlugin(),
   ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  base: "/",
+  server: {
+    historyApiFallback: true,
+  },
+  preview: {
+    port: 4173,
+    historyApiFallback: true,
   },
   build: {
     // Generate sourcemaps for production build

@@ -8,6 +8,7 @@ const IssueTable = ({ issues }) => {
     const statusLower = status.toLowerCase();
     if (statusLower.includes("complete")) return "bg-green-100 text-green-800";
     if (statusLower.includes("progress") || statusLower === "in-progress") return "bg-indigo-100 text-indigo-800";
+    if (statusLower.includes("reject")) return "bg-red-100 text-red-800"; // Handle Rejected
     return "bg-yellow-100 text-yellow-800"; // Default for pending/under review/etc.
   };
 
@@ -18,6 +19,7 @@ const IssueTable = ({ issues }) => {
     if (statusLower.includes("complete")) return "Completed";
     if (statusLower.includes("progress") || statusLower === "in-progress") return "In Progress";
     if (statusLower.includes("review")) return "Under Review";
+    if (statusLower.includes("reject")) return "Rejected"; // Handle Rejected
     return "Pending"; // Default
   };
 

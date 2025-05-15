@@ -226,7 +226,7 @@ const Signup = () => {
     try {
       console.log("Checking email:", email);
 
-      // First, check the profiles table
+      // Check the profiles table for existing email
       const { data, error } = await supabase.from("profiles").select("email").eq("email", email.trim()).limit(1);
 
       if (error) {
@@ -236,21 +236,6 @@ const Signup = () => {
       }
 
       if (data && data.length > 0) {
-        setEmailError("This email is already registered. Please use a different email or login to your existing account.");
-        setIsCheckingEmail(false);
-        return true; // Email exists
-      }
-
-      // Second, check with the auth API without creating a user
-      const { data: userList, error: authError } = await supabase.auth.admin.listUsers({
-        filter: {
-          email: email.trim(),
-        },
-      });
-
-      if (authError) {
-        console.error("Error checking auth:", authError);
-      } else if (userList && userList.users && userList.users.length > 0) {
         setEmailError("This email is already registered. Please use a different email or login to your existing account.");
         setIsCheckingEmail(false);
         return true; // Email exists
@@ -287,13 +272,25 @@ const Signup = () => {
 
     try {
       // Attempt to sign up
+      console.log("Signing up with data:", {
+        email: formData.email,
+        metadata: {
+          name: formData.name,
+          full_name: formData.name,
+          contact_number: formData.contactNumber,
+          phone: formData.contactNumber,
+        },
+      });
+
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             name: formData.name,
+            full_name: formData.name,
             contact_number: formData.contactNumber,
+            phone: formData.contactNumber,
           },
         },
       });
@@ -315,19 +312,28 @@ const Signup = () => {
         return;
       }
 
-      // Successful signup, insert profile data
-      if (data?.user?.id) {
-        const { error: profileError } = await supabase.from("profiles").upsert({
-          id: data.user.id,
-          name: formData.name,
-          email: formData.email,
-          contact_number: formData.contactNumber,
-        });
+      console.log("Signup successful, user data:", data?.user);
 
-        if (profileError) {
-          console.error("Error inserting profile:", profileError);
-        }
+      // Successful signup
+      if (data?.user?.id) {
+        console.log("Signup successful, user data:", data?.user);
+
+        // The direct profile creation is failing due to RLS policies
+        // We will need to set this up on the server side with proper RLS
+        // For now, we'll rely on the auth metadata which should be available
+        // to the profile components
+
+        // Profile will need to be created either:
+        // 1. On the server via a trigger or function
+        // 2. When the user logs in for the first time
+        // 3. Via an API endpoint with admin rights
+        console.log("Direct profile creation skipped - should be handled server-side");
       }
+
+      // Update user metadata to ensure it's stored there as well
+      // Note: This will also fail until the user is confirmed/signed in
+      // These values should be passed in the initial signUp call
+      console.log("User metadata should already be set in the signup process");
 
       setSuccess(true);
 
@@ -366,7 +372,13 @@ const Signup = () => {
 
             {error && <div className="mt-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
-            {success && <div className="mt-4 rounded-md bg-green-50 p-4 text-sm text-green-700">Registration successful! Please check your email for confirmation. Redirecting to login...</div>}
+            {success && (
+              <div className="mt-4 rounded-md bg-green-50 p-4 text-sm text-green-700">
+                <p className="font-semibold mb-1">Registration successful!</p>
+                <p>A confirmation email has been sent to your email address. Please check your inbox and click the confirmation link to activate your account.</p>
+                <p className="mt-1">You will be redirected to the login page in a moment.</p>
+              </div>
+            )}
 
             <form
               className="mt-8 space-y-6"

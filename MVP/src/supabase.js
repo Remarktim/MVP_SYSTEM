@@ -9,15 +9,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables");
 }
 
+// Define consistent session storage options
+const sessionOptions = {
+  persistSession: true,
+  storageKey: "mvp_auth_token", // Use a single consistent key
+  storage: localStorage,
+  autoRefreshToken: true,
+  detectSessionInUrl: true,
+};
+
 // Regular client for normal user operations
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    storageKey: "mvp_app_auth_token",
-    storage: window.localStorage,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
+  auth: sessionOptions,
 });
 
 // -------------------------------
@@ -25,22 +28,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // -------------------------------
 
 // Admin client that avoids creating a second auth instance
-// The key approach is to create a facade object that creates temporary clients as needed
 const createAdminClient = () => {
   if (!supabaseServiceKey) {
     console.error("Missing Supabase service role key");
     return null;
   }
 
-  // Create temporary client with a different storage key for admin sessions
+  // Create temporary client with the SAME storage key for consistent session handling
   const createTempClient = () => {
     return createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        persistSession: true,
-        storageKey: "mvp_admin_auth_token",
-        storage: window.localStorage,
-        autoRefreshToken: true,
-      },
+      auth: sessionOptions, // Use the same session options
     });
   };
 

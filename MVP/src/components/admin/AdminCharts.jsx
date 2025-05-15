@@ -51,6 +51,7 @@ const AdminCharts = ({ issues: propIssues }) => {
     const statusLower = status.toLowerCase();
     if (statusLower.includes("complete")) return "completed";
     if (statusLower.includes("progress") || statusLower.includes("in-progress")) return "in-progress";
+    if (statusLower.includes("reject")) return "rejected";
     if (statusLower.includes("review") || statusLower.includes("pending")) return "pending";
 
     return "pending"; // default
@@ -58,18 +59,19 @@ const AdminCharts = ({ issues: propIssues }) => {
 
   // Helper function to get status distribution
   const getStatusDistribution = useMemo(() => {
-    const statusCounts = { pending: 0, inProgress: 0, completed: 0 };
+    const statusCounts = { pending: 0, inProgress: 0, completed: 0, rejected: 0 };
 
     if (!issues || issues.length === 0) {
       return statusCounts;
     }
 
     issues.forEach((issue) => {
-      const status = issue.status ? issue.status.toLowerCase() : "";
+      const currentStatus = issue.status;
 
-      if (status.includes("complete")) statusCounts.completed++;
-      else if (status.includes("progress") || status === "in-progress") statusCounts.inProgress++;
-      else statusCounts.pending++; // Default to pending for any other status
+      if (currentStatus === "completed") statusCounts.completed++;
+      else if (currentStatus === "in-progress") statusCounts.inProgress++;
+      else if (currentStatus === "rejected") statusCounts.rejected++;
+      else if (currentStatus === "pending") statusCounts.pending++;
     });
 
     return statusCounts;
@@ -262,7 +264,7 @@ const AdminCharts = ({ issues: propIssues }) => {
                     <div className="flex-shrink-0">
                       <div
                         className={`w-2.5 h-2.5 rounded-full ${
-                          activity.status.includes("complete") ? "bg-green-500" : activity.status.includes("progress") ? "bg-indigo-500" : "bg-yellow-500"
+                          activity.status === "completed" ? "bg-green-500" : activity.status === "in-progress" ? "bg-indigo-500" : activity.status === "rejected" ? "bg-red-500" : "bg-yellow-500"
                         }`}></div>
                     </div>
                     <div className="flex-1 min-w-0">
