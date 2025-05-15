@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [sessionData, setSessionData] = useState(null);
+  const [lastActivityTime, setLastActivityTime] = useState(Date.now());
 
   // Helper function to check admin status in multiple places
   const checkIsAdmin = async (userObject) => {
@@ -179,16 +180,50 @@ export const AuthProvider = ({ children }) => {
       if (document.visibilityState === "visible") {
         console.log("Page became visible, refreshing session data");
         initializeFromStorage();
+        setLastActivityTime(Date.now()); // Reset activity time
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    // --- Auto-logout logic ---
+    let inactivityTimer;
+
+    const resetInactivityTimer = () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        // Check if user is still active
+        if (Date.now() - lastActivityTime >= 30 * 60 * 1000) {
+          console.log("User inactive for 30 minutes, signing out.");
+          signOut();
+        }
+      }, 30 * 60 * 1000); // 30 minutes
+    };
+
+    const handleUserActivity = () => {
+      setLastActivityTime(Date.now());
+      resetInactivityTimer();
+    };
+
+    // Add event listeners for user activity
+    window.addEventListener("mousemove", handleUserActivity);
+    window.addEventListener("keydown", handleUserActivity);
+    window.addEventListener("click", handleUserActivity);
+    window.addEventListener("scroll", handleUserActivity);
+
+    resetInactivityTimer(); // Initialize the timer
+
     return () => {
       subscription?.unsubscribe();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      // Clear inactivity timer and event listeners on unmount
+      clearTimeout(inactivityTimer);
+      window.removeEventListener("mousemove", handleUserActivity);
+      window.removeEventListener("keydown", handleUserActivity);
+      window.removeEventListener("click", handleUserActivity);
+      window.removeEventListener("scroll", handleUserActivity);
     };
-  }, []);
+  }, [lastActivityTime]); // Add lastActivityTime as a dependency
 
   const signOut = async () => {
     try {

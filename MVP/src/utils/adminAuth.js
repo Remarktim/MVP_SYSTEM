@@ -3,6 +3,54 @@ import { supabase } from "../supabase";
 // Admin auth state management
 let adminUser = null;
 let adminListeners = [];
+let lastAdminActivityTime = Date.now();
+let adminInactivityTimer = null;
+
+const ADMIN_INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
+// Function to handle admin activity
+const handleAdminActivity = () => {
+  lastAdminActivityTime = Date.now();
+  // console.log("Admin activity detected, resetting timer."); // Optional: for debugging
+  resetAdminInactivityTimer();
+};
+
+// Function to reset the inactivity timer
+const resetAdminInactivityTimer = () => {
+  if (adminInactivityTimer) {
+    clearTimeout(adminInactivityTimer);
+  }
+  // Only set the timer if an admin is actually logged in
+  if (adminUser) {
+    adminInactivityTimer = setTimeout(() => {
+      if (adminUser && Date.now() - lastAdminActivityTime >= ADMIN_INACTIVITY_TIMEOUT) {
+        console.log("Admin inactive for 30 minutes, signing out.");
+        adminSignOut();
+      }
+    }, ADMIN_INACTIVITY_TIMEOUT);
+  }
+};
+
+// Add/remove event listeners for admin activity
+const setupAdminActivityListeners = () => {
+  window.addEventListener("mousemove", handleAdminActivity);
+  window.addEventListener("keydown", handleAdminActivity);
+  window.addEventListener("click", handleAdminActivity);
+  window.addEventListener("scroll", handleAdminActivity);
+  // console.log("Admin activity listeners added."); // Optional: for debugging
+};
+
+const removeAdminActivityListeners = () => {
+  window.removeEventListener("mousemove", handleAdminActivity);
+  window.removeEventListener("keydown", handleAdminActivity);
+  window.removeEventListener("click", handleAdminActivity);
+  window.removeEventListener("scroll", handleAdminActivity);
+  if (adminInactivityTimer) {
+    clearTimeout(adminInactivityTimer);
+    adminInactivityTimer = null;
+  }
+  // console.log("Admin activity listeners removed."); // Optional: for debugging
+};
 
 // Notify all listeners when admin state changes
 const notifyListeners = () => {
@@ -46,6 +94,9 @@ export const adminLogin = async (email, password) => {
     };
     localStorage.setItem("adminUser", JSON.stringify(adminUser));
     notifyListeners();
+    lastAdminActivityTime = Date.now(); // Reset activity time on login
+    setupAdminActivityListeners(); // Start listening for activity
+    resetAdminInactivityTimer(); // Start inactivity timer
 
     return { user: adminUser };
   } catch (error) {
@@ -61,6 +112,7 @@ export const adminSignOut = async () => {
     localStorage.removeItem("adminUser");
     adminUser = null;
     notifyListeners();
+    removeAdminActivityListeners(); // Stop listening for activity and clear timer
 
     // Sign out from Supabase too
     await supabase.auth.signOut();
@@ -130,7 +182,10 @@ export const getCurrentAdmin = () => {
 // Initialize admin from localStorage
 export const initializeAdmin = async () => {
   const storedAdmin = localStorage.getItem("adminUser");
-  if (!storedAdmin) return null;
+  if (!storedAdmin) {
+    removeAdminActivityListeners(); // Ensure listeners are off if no admin
+    return null;
+  }
 
   try {
     // Validate session is still active with Supabase
@@ -140,6 +195,7 @@ export const initializeAdmin = async () => {
       localStorage.removeItem("adminUser");
       adminUser = null;
       notifyListeners();
+      removeAdminActivityListeners(); // Clean up
       return null;
     }
 
@@ -149,6 +205,7 @@ export const initializeAdmin = async () => {
       localStorage.removeItem("adminUser");
       adminUser = null;
       notifyListeners();
+      removeAdminActivityListeners(); // Clean up
       return null;
     }
 
@@ -160,6 +217,9 @@ export const initializeAdmin = async () => {
     };
     localStorage.setItem("adminUser", JSON.stringify(adminUser));
     notifyListeners();
+    lastAdminActivityTime = Date.now(); // Reset activity time on init
+    setupAdminActivityListeners(); // Start listening for activity
+    resetAdminInactivityTimer(); // Start inactivity timer
 
     return adminUser;
   } catch (e) {
@@ -167,9 +227,21 @@ export const initializeAdmin = async () => {
     localStorage.removeItem("adminUser");
     adminUser = null;
     notifyListeners();
+    removeAdminActivityListeners(); // Clean up on error
     return null;
   }
 };
+
+// Initial check when module loads
+// If an admin session is found in local storage and validated, start monitoring.
+initializeAdmin().then((currentAdmin) => {
+  if (currentAdmin) {
+    console.log("Admin session initialized on load, starting inactivity monitoring.");
+  } else {
+    // console.log("No active admin session on load."); // Optional: for debugging
+    removeAdminActivityListeners(); // Ensure listeners are off if no admin
+  }
+});
 
 // Check if the current user is an admin
 export const isAdminLoggedIn = () => {
