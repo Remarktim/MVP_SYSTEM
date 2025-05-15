@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase";
-import AppLogo from "../../components/logo/AppLogo";
+import AppLogo from "../components/logo/AppLogo";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -73,95 +73,94 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="bg-gray-50">
-      <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
-        <div className="max-w-md w-full">
-          <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
-            <div className="flex justify-center mb-6">
-              <AppLogo />
-            </div>
-            <h2 className="text-xl font-semibold text-center text-gray-700 mb-6">Reset Password</h2>
-
-            {error && <div className="mt-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
-
-            {message && <div className="mt-4 rounded-md bg-green-50 p-4 text-sm text-green-700">{message}</div>}
-
-            {!message && (
-              <form
-                className="mt-8 space-y-6"
-                onSubmit={handleSubmit}>
-                <div>
-                  <label className="text-slate-800 text-sm font-medium mb-2 block">New Password</label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
-                      placeholder="Enter new password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="#bbb"
-                      stroke="#bbb"
-                      className="w-4 h-4 absolute right-4 cursor-pointer"
-                      viewBox="0 0 128 128"
-                      onClick={() => setShowPassword(!showPassword)}>
-                      <path d="M64 104C22.127 104 1.367 67.496.504 65.943a4 4 0 0 1 0-3.887C1.367 60.504 22.127 24 64 24s62.633 36.504 63.496 38.057a4 4 0 0 1 0 3.887C126.633 67.496 105.873 104 64 104zM8.707 63.994C13.465 71.205 32.146 96 64 96c31.955 0 50.553-24.775 55.293-31.994C114.535 56.795 95.854 32 64 32 32.045 32 13.447 56.775 8.707 63.994zM64 88c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm0-40c-8.822 0-16 7.178-16 16s7.178 16 16 16 16-7.178 16-16-7.178-16-16-16z"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-slate-800 text-sm font-medium mb-2 block">Confirm New Password</label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      required
-                      className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
-                      placeholder="Confirm new password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="#bbb"
-                      stroke="#bbb"
-                      className="w-4 h-4 absolute right-4 cursor-pointer"
-                      viewBox="0 0 128 128"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                      <path d="M64 104C22.127 104 1.367 67.496.504 65.943a4 4 0 0 1 0-3.887C1.367 60.504 22.127 24 64 24s62.633 36.504 63.496 38.057a4 4 0 0 1 0 3.887C126.633 67.496 105.873 104 64 104zM8.707 63.994C13.465 71.205 32.146 96 64 96c31.955 0 50.553-24.775 55.293-31.994C114.535 56.795 95.854 32 64 32 32.045 32 13.447 56.775 8.707 63.994zM64 88c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm0-40c-8.822 0-16 7.178-16 16s7.178 16 16 16 16-7.178 16-16-7.178-16-16-16z"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                <div className="!mt-8">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3 px-4 text-[15px] font-medium tracking-wide rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-400">
-                    {loading ? "Resetting Password..." : "Reset Password"}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {message && (
-              <div className="mt-8 flex justify-center">
-                <button
-                  onClick={() => navigate("/login")}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                  Go to Login Now
-                </button>
-              </div>
-            )}
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <AppLogo
+            width={240}
+            height={64}
+          />
         </div>
+        <h2 className="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900 mb-6">Reset Password</h2>
+
+        {error && <div className="mt-4 rounded-md bg-red-50 p-3 sm:p-4 text-sm text-red-700">{error}</div>}
+
+        {message && <div className="mt-4 rounded-md bg-green-50 p-3 sm:p-4 text-sm text-green-700">{message}</div>}
+
+        {!message && (
+          <form
+            className="mt-8 sm:mt-10 space-y-6"
+            onSubmit={handleSubmit}>
+            <div>
+              <label className="text-slate-800 text-sm font-medium mb-2 block">New Password</label>
+              <div className="relative flex items-center">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
+                  placeholder="Enter new password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="#bbb"
+                  stroke="#bbb"
+                  className="w-4 h-4 absolute right-4 cursor-pointer"
+                  viewBox="0 0 128 128"
+                  onClick={() => setShowPassword(!showPassword)}>
+                  <path d="M64 104C22.127 104 1.367 67.496.504 65.943a4 4 0 0 1 0-3.887C1.367 60.504 22.127 24 64 24s62.633 36.504 63.496 38.057a4 4 0 0 1 0 3.887C126.633 67.496 105.873 104 64 104zM8.707 63.994C13.465 71.205 32.146 96 64 96c31.955 0 50.553-24.775 55.293-31.994C114.535 56.795 95.854 32 64 32 32.045 32 13.447 56.775 8.707 63.994zM64 88c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm0-40c-8.822 0-16 7.178-16 16s7.178 16 16 16 16-7.178 16-16-7.178-16-16-16z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-slate-800 text-sm font-medium mb-2 block">Confirm New Password</label>
+              <div className="relative flex items-center">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="#bbb"
+                  stroke="#bbb"
+                  className="w-4 h-4 absolute right-4 cursor-pointer"
+                  viewBox="0 0 128 128"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <path d="M64 104C22.127 104 1.367 67.496.504 65.943a4 4 0 0 1 0-3.887C1.367 60.504 22.127 24 64 24s62.633 36.504 63.496 38.057a4 4 0 0 1 0 3.887C126.633 67.496 105.873 104 64 104zM8.707 63.994C13.465 71.205 32.146 96 64 96c31.955 0 50.553-24.775 55.293-31.994C114.535 56.795 95.854 32 64 32 32.045 32 13.447 56.775 8.707 63.994zM64 88c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm0-40c-8.822 0-16 7.178-16 16s7.178 16 16 16 16-7.178 16-16-7.178-16-16-16z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div className="!mt-12">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 text-[15px] font-medium tracking-wide rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-400">
+                {loading ? "Resetting Password..." : "Reset Password"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {message && (
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => navigate("/login")}
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+              Go to Login Now
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
