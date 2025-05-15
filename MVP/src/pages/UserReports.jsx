@@ -55,7 +55,7 @@ const UserReports = () => {
   // Initial data fetch
   useEffect(() => {
     fetchUserIssues();
-  }, [user]);
+  }, [user?.id]);
 
   // Apply filter when activeFilter changes
   useEffect(() => {

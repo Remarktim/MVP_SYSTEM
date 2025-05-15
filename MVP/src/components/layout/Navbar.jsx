@@ -39,7 +39,7 @@ const Navbar = () => {
     };
 
     fetchProfileData();
-  }, [user]);
+  }, [user?.id]);
 
   // User profile info - prioritize profiles table data over user metadata
   const fullName = profileData?.name || user?.user_metadata?.full_name || "User";
