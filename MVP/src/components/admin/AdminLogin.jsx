@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminLogin, initializeAdmin } from "../../utils/adminAuth";
 import { toast } from "react-hot-toast";
+import AppLogo from "../logo/AppLogo";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -78,8 +79,8 @@ const AdminLogin = () => {
     <div className="bg-gray-50">
       <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="max-w-md w-full">
-          <div className="w-auto mb-8 mx-auto block">
-            <h1 className="text-2xl font-bold text-indigo-600 text-center">Admin Panel</h1>
+          <div className="flex justify-center mb-8">
+            <AppLogo />
           </div>
 
           <div className="p-8 rounded-2xl bg-white shadow">
@@ -190,7 +191,7 @@ const AdminLogin = () => {
               <a
                 href="/"
                 className="text-indigo-600 hover:underline font-semibold">
-                Return to Main Site
+                Return to user log in
               </a>
             </p>
           </div>

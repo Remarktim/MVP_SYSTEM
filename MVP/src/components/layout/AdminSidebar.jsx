@@ -1,6 +1,7 @@
 import React, { memo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../supabase";
+import AppLogo from "../logo/AppLogo";
 
 // Import icons from library of your choice (this example uses react-icons)
 import { RxDashboard } from "react-icons/rx";
@@ -39,8 +40,11 @@ export const databaseItems = [
 
 // ========== Brand Logo Component ==========
 export const BrandLogo = memo(() => (
-  <div className="flex items-center ">
-    <span className="text-base text-center font-semibold whitespace-nowrap">Community Connect MVP</span>
+  <div className="flex items-center justify-center py-3 px-2">
+    <AppLogo
+      width={180}
+      height={48}
+    />
   </div>
 ));
 

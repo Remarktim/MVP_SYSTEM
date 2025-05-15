@@ -1,8 +1,9 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabase";
 import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import AppLogo from "../logo/AppLogo";
 
 const termsContent = `
 # Terms and Conditions
@@ -360,209 +361,207 @@ const Signup = () => {
   };
 
   return (
-    <div className="bg-gray-50">
-      <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
-        <div className="max-w-md w-full">
-          <div className="w-40 mb-8 mx-auto block">
-            <h1 className="text-2xl font-bold text-indigo-600 text-center">Community Connect MVP</h1>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-md">
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <AppLogo
+            width={240}
+            height={64}
+          />
+        </div>
+        <h2 className="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">Create Account</h2>
+
+        {error && <div className="mt-4 rounded-md bg-red-50 p-3 sm:p-4 text-sm text-red-700">{error}</div>}
+
+        {success && (
+          <div className="mt-4 rounded-md bg-green-50 p-3 sm:p-4 text-sm text-green-700">
+            <p className="font-semibold mb-1">Registration successful!</p>
+            <p>A confirmation email has been sent to your email address. Please check your inbox and click the confirmation link to activate your account.</p>
+            <p className="mt-1">You will be redirected to the login page in a moment.</p>
           </div>
+        )}
 
-          <div className="p-8 rounded-2xl bg-white shadow">
-            <h2 className="text-slate-900 text-center text-3xl font-semibold">Create Account</h2>
-
-            {error && <div className="mt-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
-
-            {success && (
-              <div className="mt-4 rounded-md bg-green-50 p-4 text-sm text-green-700">
-                <p className="font-semibold mb-1">Registration successful!</p>
-                <p>A confirmation email has been sent to your email address. Please check your inbox and click the confirmation link to activate your account.</p>
-                <p className="mt-1">You will be redirected to the login page in a moment.</p>
+        <form
+          className="mt-6 sm:mt-8 space-y-5 sm:space-y-6"
+          onSubmit={handleSubmit}>
+          <div className="space-y-3 sm:space-y-4">
+            <div>
+              <label className="text-slate-800 text-sm font-medium mb-2 block">Full Name</label>
+              <div className="relative flex items-center">
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="#bbb"
+                  stroke="#bbb"
+                  className="w-4 h-4 absolute right-4"
+                  viewBox="0 0 24 24">
+                  <circle
+                    cx="10"
+                    cy="7"
+                    r="6"></circle>
+                  <path d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5z"></path>
+                </svg>
               </div>
-            )}
+            </div>
 
-            <form
-              className="mt-8 space-y-6"
-              onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-slate-800 text-sm font-medium mb-2 block">Full Name</label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      required
-                      className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
-                      placeholder="Enter your full name"
-                      value={formData.name}
-                      onChange={handleChange}
-                    />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="#bbb"
-                      stroke="#bbb"
-                      className="w-4 h-4 absolute right-4"
-                      viewBox="0 0 24 24">
-                      <circle
-                        cx="10"
-                        cy="7"
-                        r="6"></circle>
-                      <path d="M14 15H6a5 5 0 0 0-5 5 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 5 5 0 0 0-5-5z"></path>
-                    </svg>
-                  </div>
-                </div>
+            <div>
+              <label className="text-slate-800 text-sm font-medium mb-2 block">Email Address</label>
+              <div className="relative flex items-center">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className={`w-full text-slate-800 text-sm border ${emailError ? "border-red-500" : "border-slate-300"} px-4 py-3 rounded-md outline-indigo-600`}
+                  placeholder="Enter your email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onBlur={() => checkEmailExists(formData.email)}
+                />
 
-                <div>
-                  <label className="text-slate-800 text-sm font-medium mb-2 block">Email Address</label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      className={`w-full text-slate-800 text-sm border ${emailError ? "border-red-500" : "border-slate-300"} px-4 py-3 rounded-md outline-indigo-600`}
-                      placeholder="Enter your email address"
-                      value={formData.email}
-                      onChange={handleChange}
-                      onBlur={() => checkEmailExists(formData.email)}
-                    />
-
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="#bbb"
-                      stroke="#bbb"
-                      className="w-4 h-4 absolute right-4"
-                      viewBox="0 0 24 24">
-                      <path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-slate-800 text-sm font-medium mb-2 block">Contact Number</label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="contactNumber"
-                      name="contactNumber"
-                      type="tel"
-                      required
-                      className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
-                      placeholder="Enter your contact number"
-                      value={formData.contactNumber}
-                      onChange={handleChange}
-                    />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="#bbb"
-                      stroke="#bbb"
-                      className="w-4 h-4 absolute right-4"
-                      viewBox="0 0 24 24">
-                      <path d="M20 15.5c-1.2 0-2.4-.2-3.6-.6-.3-.1-.7 0-1 .2l-2.2 2.2c-2.8-1.4-5.1-3.8-6.6-6.6l2.2-2.2c.3-.3.4-.7.2-1-.3-1.1-.5-2.3-.5-3.5 0-.6-.4-1-1-1H4c-.6 0-1 .4-1 1 0 9.4 7.6 17 17 17 .6 0 1-.4 1-1v-3.5c0-.6-.4-1-1-1z"></path>
-                    </svg>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-slate-800 text-sm font-medium mb-2 block">Password</label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      required
-                      className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
-                      placeholder="Create a password"
-                      value={formData.password}
-                      onChange={handleChange}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-4"
-                      onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <EyeSlashIcon className="h-5 w-5 text-gray-400" /> : <EyeIcon className="h-5 w-5 text-gray-400" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-slate-800 text-sm font-medium mb-2 block">Confirm Password</label>
-                  <div className="relative flex items-center">
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      required
-                      className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
-                      placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-4"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                      {showConfirmPassword ? <EyeSlashIcon className="h-5 w-5 text-gray-400" /> : <EyeIcon className="h-5 w-5 text-gray-400" />}
-                    </button>
-                  </div>
-                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="#bbb"
+                  stroke="#bbb"
+                  className="w-4 h-4 absolute right-4"
+                  viewBox="0 0 24 24">
+                  <path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"></path>
+                </svg>
               </div>
+            </div>
 
-              <div className="mt-6">
-                <div className="flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="terms"
-                      name="terms"
-                      type="checkbox"
-                      checked={termsAccepted}
-                      onChange={(e) => setTermsAccepted(e.target.checked)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <label
-                      htmlFor="terms"
-                      className="text-slate-800">
-                      I agree to the{" "}
-                      <button
-                        onClick={openTermsModal}
-                        className="text-indigo-600 hover:underline font-medium">
-                        Terms and Conditions
-                      </button>{" "}
-                      and{" "}
-                      <button
-                        onClick={openPrivacyModal}
-                        className="text-indigo-600 hover:underline font-medium">
-                        Privacy Policy
-                      </button>
-                    </label>
-                  </div>
-                </div>
+            <div>
+              <label className="text-slate-800 text-sm font-medium mb-2 block">Contact Number</label>
+              <div className="relative flex items-center">
+                <input
+                  id="contactNumber"
+                  name="contactNumber"
+                  type="tel"
+                  required
+                  className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
+                  placeholder="Enter your contact number"
+                  value={formData.contactNumber}
+                  onChange={handleChange}
+                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="#bbb"
+                  stroke="#bbb"
+                  className="w-4 h-4 absolute right-4"
+                  viewBox="0 0 24 24">
+                  <path d="M20 15.5c-1.2 0-2.4-.2-3.6-.6-.3-.1-.7 0-1 .2l-2.2 2.2c-2.8-1.4-5.1-3.8-6.6-6.6l2.2-2.2c.3-.3.4-.7.2-1-.3-1.1-.5-2.3-.5-3.5 0-.6-.4-1-1-1H4c-.6 0-1 .4-1 1 0 9.4 7.6 17 17 17 .6 0 1-.4 1-1v-3.5c0-.6-.4-1-1-1z"></path>
+                </svg>
               </div>
+            </div>
 
-              <div className="!mt-8">
+            <div>
+              <label className="text-slate-800 text-sm font-medium mb-2 block">Password</label>
+              <div className="relative flex items-center">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
+                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
                 <button
-                  type="submit"
-                  disabled={loading || !termsAccepted}
-                  className="w-full py-3 px-4 text-[15px] font-medium tracking-wide rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:bg-indigo-400">
-                  {loading ? "Creating Account..." : "Create Account"}
+                  type="button"
+                  className="absolute right-4"
+                  onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <EyeSlashIcon className="h-5 w-5 text-gray-400" /> : <EyeIcon className="h-5 w-5 text-gray-400" />}
                 </button>
               </div>
+            </div>
 
-              <p className="text-slate-800 text-sm !mt-6 text-center">
-                Already have an account?
-                <a
-                  href="/login"
-                  className="text-indigo-600 hover:underline ml-1 whitespace-nowrap font-semibold">
-                  Sign in
-                </a>
-              </p>
-            </form>
+            <div>
+              <label className="text-slate-800 text-sm font-medium mb-2 block">Confirm Password</label>
+              <div className="relative flex items-center">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  className="absolute right-4"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  {showConfirmPassword ? <EyeSlashIcon className="h-5 w-5 text-gray-400" /> : <EyeIcon className="h-5 w-5 text-gray-400" />}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <div className="mt-6">
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label
+                  htmlFor="terms"
+                  className="text-slate-800">
+                  I agree to the{" "}
+                  <button
+                    onClick={openTermsModal}
+                    className="text-indigo-600 hover:underline font-medium">
+                    Terms and Conditions
+                  </button>{" "}
+                  and{" "}
+                  <button
+                    onClick={openPrivacyModal}
+                    className="text-indigo-600 hover:underline font-medium">
+                    Privacy Policy
+                  </button>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="!mt-8">
+            <button
+              type="submit"
+              disabled={loading || !termsAccepted}
+              className="w-full py-3 px-4 text-[15px] font-medium tracking-wide rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:bg-indigo-400">
+              {loading ? "Creating Account..." : "Create Account"}
+            </button>
+          </div>
+
+          <p className="text-slate-800 text-sm !mt-6 text-center">
+            Already have an account?
+            <a
+              href="/login"
+              className="text-indigo-600 hover:underline ml-1 whitespace-nowrap font-semibold">
+              Sign in
+            </a>
+          </p>
+        </form>
       </div>
 
       <Modal

@@ -56,7 +56,7 @@ const IssueDetail = () => {
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         {loading ? (
           <div className="text-center py-10">
-            <div className="spinner">Loading...</div>
+            <div className="spinner animate-pulse-circle text-logo-vibrant-blue">Loading...</div>
           </div>
         ) : issue ? (
           <div className="w-full">
@@ -64,21 +64,21 @@ const IssueDetail = () => {
             <div className="mb-4">
               <button
                 onClick={() => navigate(-1)}
-                className="flex items-center text-indigo-600 hover:text-indigo-800">
-                <ChevronLeft className="h-5 w-5" />
+                className="flex items-center text-logo-vibrant-blue hover:text-logo-dark-blue font-medium transition-colors duration-300 ease-in-out">
+                <ChevronLeft className="h-5 w-5 mr-1" />
                 <span>Back to reports</span>
               </button>
             </div>
 
             {/* Issue detail */}
-            <div className="bg-white rounded-lg shadow">
+            <div className="bg-white rounded-xl shadow-lg">
               {/* Report header with status */}
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
-                    <h1 className="text-2xl font-bold text-gray-800">{issue.title}</h1>
+                    <h1 className="text-2xl font-bold text-logo-dark-blue">{issue.title}</h1>
                   </div>
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(issue.status)}`}>{issue.status}</span>
+                  <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(issue.status)}`}>{issue.status}</span>
                 </div>
 
                 {/* Description */}
@@ -93,7 +93,7 @@ const IssueDetail = () => {
                         <img
                           src={issue.before_image_path}
                           alt="Before"
-                          className="w-full rounded-md object-cover h-80"
+                          className="w-full rounded-lg object-cover h-80 shadow-md"
                           onError={(e) => {
                             e.target.src = "/api/placeholder/800/600";
                           }}
@@ -106,7 +106,7 @@ const IssueDetail = () => {
                         <img
                           src={issue.after_image_path}
                           alt="After"
-                          className="w-full rounded-md object-cover h-80"
+                          className="w-full rounded-lg object-cover h-80 shadow-md"
                           onError={(e) => {
                             e.target.src = "/api/placeholder/800/600";
                           }}
@@ -117,21 +117,21 @@ const IssueDetail = () => {
                 )}
 
                 {/* Location info */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-md">
-                  <p className="text-sm text-gray-700 font-medium">📍 Location</p>
-                  <p className="text-gray-800">{issue.location || "Not specified"}</p>
+                <div className="mb-6 p-4 bg-slate-100 rounded-lg">
+                  <p className="text-sm text-logo-dark-blue font-medium">📍 Location</p>
+                  <p className="text-gray-700">{issue.location || "Not specified"}</p>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="text-center py-10 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">Issue not found</h3>
+          <div className="text-center py-10 bg-white rounded-xl shadow-lg">
+            <h3 className="text-lg font-medium text-logo-dark-blue">Issue not found</h3>
             <p className="mt-1 text-sm text-gray-500">The issue you're looking for doesn't exist or has been removed.</p>
             <div className="mt-4">
               <Link
                 to="/"
-                className="text-indigo-600 hover:text-indigo-800">
+                className="text-logo-vibrant-blue hover:text-logo-dark-blue font-medium transition-colors duration-300 ease-in-out">
                 Return to home
               </Link>
             </div>

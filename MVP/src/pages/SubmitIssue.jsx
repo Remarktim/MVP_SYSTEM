@@ -157,7 +157,7 @@ const SubmitIssue = () => {
 
       {/* Main content */}
       <main className="max-w-5xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
           <div className="mb-6">
             <p className="mt-1 text-sm text-gray-500">Please provide details about the issue you'd like to report.</p>
           </div>
@@ -178,7 +178,7 @@ const SubmitIssue = () => {
                     name="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="block p-2.5 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block p-2.5 w-full rounded-lg border-gray-300 shadow-sm focus:border-logo-vibrant-blue focus:ring-1 focus:ring-logo-vibrant-blue sm:text-sm"
                     required
                   />
                 </div>
@@ -198,7 +198,7 @@ const SubmitIssue = () => {
                     name="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="block p-2.5 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block p-2.5 w-full rounded-lg border-gray-300 shadow-sm focus:border-logo-vibrant-blue focus:ring-1 focus:ring-logo-vibrant-blue sm:text-sm"
                     placeholder="Street address or landmark"
                     required
                   />
@@ -219,7 +219,7 @@ const SubmitIssue = () => {
                     rows={4}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="block p-2.5 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block p-2.5 w-full rounded-lg border-gray-300 shadow-sm focus:border-logo-vibrant-blue focus:ring-1 focus:ring-logo-vibrant-blue sm:text-sm"
                     placeholder="Describe the issue in detail..."
                     required
                   />
@@ -231,14 +231,14 @@ const SubmitIssue = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Image <span className="text-red-500">*</span>
                 </label>
-                <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pt-5 pb-6">
+                <div className="mt-1 flex justify-center rounded-lg border-2 border-dashed border-gray-400 px-6 pt-5 pb-6">
                   <div className="space-y-1 text-center">
                     {beforeImagePreview ? (
                       <div>
                         <img
                           src={beforeImagePreview}
                           alt="Image preview"
-                          className="mx-auto h-64 w-auto object-cover"
+                          className="mx-auto h-64 w-auto object-cover rounded-md"
                         />
                         <button
                           type="button"
@@ -246,14 +246,14 @@ const SubmitIssue = () => {
                             setBeforeImage(null);
                             setBeforeImagePreview(null);
                           }}
-                          className="mt-2 text-xs text-red-600 hover:text-red-800">
+                          className="mt-2 text-xs text-red-600 hover:text-red-800 font-medium">
                           Remove image
                         </button>
                       </div>
                     ) : (
                       <>
                         <svg
-                          className="mx-auto h-12 w-12 text-gray-400"
+                          className="mx-auto h-12 w-12 text-logo-light-blue"
                           stroke="currentColor"
                           fill="none"
                           viewBox="0 0 48 48"
@@ -268,7 +268,7 @@ const SubmitIssue = () => {
                         <div className="flex text-sm text-gray-600">
                           <label
                             htmlFor="before-image-upload"
-                            className="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500">
+                            className="relative cursor-pointer rounded-md bg-white font-medium text-logo-vibrant-blue focus-within:outline-none focus-within:ring-2 focus-within:ring-logo-vibrant-blue focus-within:ring-offset-2 hover:text-logo-dark-blue">
                             <span>Upload an image</span>
                             <input
                               id="before-image-upload"
@@ -289,16 +289,16 @@ const SubmitIssue = () => {
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-end space-x-3 pt-2">
                 <Link
                   to="/my-issues"
-                  className="rounded-xl py-2 px-4 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+                  className="rounded-xl py-2 px-4 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-300 ease-in-out">
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl py-2 px-4 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+                  className="rounded-xl py-2 px-4 bg-logo-vibrant-blue text-white hover:bg-logo-dark-blue disabled:opacity-50 transition-colors duration-300 ease-in-out">
                   {submitting ? "Submitting..." : "Submit Report"}
                 </button>
               </div>

@@ -129,14 +129,14 @@ const Dashboard = () => {
         {/* Reports feed with product card design */}
         {loading ? (
           <div className="text-center py-10">
-            <div className="spinner">Loading...</div>
+            <div className="spinner animate-pulse-circle text-logo-vibrant-blue">Loading...</div>
           </div>
         ) : filteredIssues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredIssues.map((issue) => (
               <div
                 key={issue.id}
-                className="max-w-md mx-auto rounded-xl overflow-hidden shadow-md hover:shadow-lg bg-white cursor-pointer"
+                className="max-w-md mx-auto rounded-xl overflow-hidden shadow-lg hover:shadow-xl bg-white cursor-pointer transition-shadow duration-300 ease-in-out"
                 onClick={() => navigate(`/issues/${issue.id}`)}>
                 {/* Image section with Before/After toggle */}
                 <div className="relative group">
@@ -152,7 +152,7 @@ const Dashboard = () => {
                         />
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-xl">
                         <span className="text-gray-500">No before image</span>
                       </div>
                     )
@@ -167,7 +167,7 @@ const Dashboard = () => {
                       />
                     </div>
                   ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-xl">
                       <span className="text-gray-500">No after image</span>
                     </div>
                   )}
@@ -177,13 +177,13 @@ const Dashboard = () => {
                     <div className="absolute inset-0 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <button
                         onClick={(e) => toggleImage(e, issue.id)}
-                        className="ml-2 bg-white rounded-full p-1.5 shadow-md hover:bg-gray-100 transform hover:scale-110 transition-transform duration-200">
-                        <ChevronLeft className="h-5 w-5 text-gray-600" />
+                        className="ml-2 bg-white rounded-full p-1.5 shadow-lg hover:bg-gray-100 transform hover:scale-110 transition-all duration-200">
+                        <ChevronLeft className="h-5 w-5 text-logo-vibrant-blue" />
                       </button>
                       <button
                         onClick={(e) => toggleImage(e, issue.id)}
-                        className="mr-2 bg-white rounded-full p-1.5 shadow-md hover:bg-gray-100 transform hover:scale-110 transition-transform duration-200">
-                        <ChevronRight className="h-5 w-5 text-gray-600" />
+                        className="mr-2 bg-white rounded-full p-1.5 shadow-lg hover:bg-gray-100 transform hover:scale-110 transition-all duration-200">
+                        <ChevronRight className="h-5 w-5 text-logo-vibrant-blue" />
                       </button>
                     </div>
                   )}
@@ -192,7 +192,7 @@ const Dashboard = () => {
                   {issue.before_image_path && issue.after_image_path && (
                     <div className="absolute bottom-2 left-0 right-0 flex justify-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div
-                        className={`h-2 w-2 rounded-full ${activeImageMap[issue.id] === "before" ? "bg-white" : "bg-gray-400"} cursor-pointer`}
+                        className={`h-2 w-2 rounded-full ${activeImageMap[issue.id] === "before" ? "bg-logo-vibrant-blue" : "bg-logo-light-blue/50"} cursor-pointer transition-colors duration-200`}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (activeImageMap[issue.id] !== "before") {
@@ -200,7 +200,7 @@ const Dashboard = () => {
                           }
                         }}></div>
                       <div
-                        className={`h-2 w-2 rounded-full ${activeImageMap[issue.id] === "after" ? "bg-white" : "bg-gray-400"} cursor-pointer`}
+                        className={`h-2 w-2 rounded-full ${activeImageMap[issue.id] === "after" ? "bg-logo-vibrant-blue" : "bg-logo-light-blue/50"} cursor-pointer transition-colors duration-200`}
                         onClick={(e) => {
                           e.stopPropagation();
                           if (activeImageMap[issue.id] !== "after") {
@@ -211,20 +211,20 @@ const Dashboard = () => {
                   )}
 
                   {/* Status badge that changes based on which image is shown */}
-                  <div className={`absolute top-0 right-0 ${activeImageMap[issue.id] === "after" ? "bg-green-500" : "bg-gray-700"} text-white px-2 py-1 m-2 rounded-md text-sm font-medium`}>
+                  <div className={`absolute top-0 right-0 ${activeImageMap[issue.id] === "after" ? "bg-green-500" : "bg-gray-700"} text-white px-3 py-1 m-2 rounded-lg text-xs font-semibold`}>
                     {activeImageMap[issue.id] === "after" ? "AFTER" : "BEFORE"}
                   </div>
                 </div>
 
                 {/* Content section */}
                 <div className="p-4">
-                  <h3 className="text-lg font-medium mb-2">{issue.title}</h3>
+                  <h3 className="text-lg font-medium mb-2 text-logo-dark-blue">{issue.title}</h3>
                   <p className="text-gray-600 text-sm mb-3 overflow-y-auto break-words leading-relaxed max-h-20 line-clamp-3">{issue.description}</p>
                   <p className="text-gray-500 text-xs mb-4">📍 {issue.location || "No location specified"}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500 text-xs">Posted by {issue.profiles?.name || "anonymous"}</span>
                     <button
-                      className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl"
+                      className="bg-logo-vibrant-blue hover:bg-logo-dark-blue text-white font-bold py-2 px-4 rounded-xl transition-colors duration-300 ease-in-out"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/issues/${issue.id}`);
@@ -237,8 +237,8 @@ const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-10 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">No matching reports found</h3>
+          <div className="text-center py-10 bg-white rounded-xl shadow-lg">
+            <h3 className="text-lg font-medium text-logo-dark-blue">No matching reports found</h3>
             <p className="mt-1 text-sm text-gray-500">Try using different search terms or clear the search field.</p>
           </div>
         )}

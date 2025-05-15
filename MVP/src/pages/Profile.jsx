@@ -100,7 +100,6 @@ const Profile = () => {
             name: authProfile.full_name,
             email: authProfile.email,
             contact_number: authProfile.phone,
-            created_at: new Date().toISOString(),
           });
 
           if (createError) {
@@ -154,7 +153,6 @@ const Profile = () => {
         name: formData.full_name,
         contact_number: formData.phone,
         // Don't overwrite email field
-        updated_at: new Date().toISOString(),
       });
 
       if (profileError) {
@@ -271,24 +269,24 @@ const Profile = () => {
       <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {loading ? (
           <div className="text-center py-10">
-            <div className="spinner">Loading...</div>
+            <div className="spinner animate-pulse-circle text-logo-vibrant-blue">Loading...</div>
           </div>
         ) : (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
+          <div className="bg-white shadow-lg rounded-lg overflow-hidden">
             {/* Profile header with avatar */}
-            <div className="bg-indigo-600 h-32 sm:h-40"></div>
+            <div className="bg-logo-vibrant-blue h-32 sm:h-40"></div>
             <div className="px-4 sm:px-6 lg:px-8 pb-6">
               <div className="-mt-12 sm:-mt-16 flex items-end space-x-5">
                 <div className="flex">
                   <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full ring-4 ring-white overflow-hidden">
-                    <div className="flex items-center justify-center h-full w-full bg-indigo-600 text-white text-3xl sm:text-5xl font-bold">
+                    <div className="flex items-center justify-center h-full w-full bg-logo-vibrant-blue text-white text-3xl sm:text-5xl font-bold">
                       {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}
                     </div>
                   </div>
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 truncate">{profile.full_name || "User"}</h2>
+                    <h2 className="text-2xl font-bold text-logo-dark-blue truncate">{profile.full_name || "User"}</h2>
                     <p className="text-sm font-medium text-gray-500">{"User"}</p>
                   </div>
                 </div>
@@ -297,7 +295,7 @@ const Profile = () => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setEditMode(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-logo-vibrant-blue hover:bg-logo-dark-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-logo-vibrant-blue">
                       <Pencil className="h-4 w-4 mr-1" />
                       Edit
                     </button>
@@ -307,9 +305,9 @@ const Profile = () => {
             </div>
 
             {/* Success and Error messages */}
-            {successMessage && <div className="mx-4 sm:mx-6 lg:mx-8 mb-4 bg-green-50 border-l-4 border-green-500 p-4 text-green-700">{successMessage}</div>}
+            {successMessage && <div className="mx-4 sm:mx-6 lg:mx-8 mb-4 bg-green-50 border-l-4 border-green-500 p-4 text-green-700 rounded-md">{successMessage}</div>}
 
-            {error && <div className="mx-4 sm:mx-6 lg:mx-8 mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">{error}</div>}
+            {error && <div className="mx-4 sm:mx-6 lg:mx-8 mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700 rounded-md">{error}</div>}
 
             {/* Profile content */}
             <div className="px-4 sm:px-6 lg:px-8 py-5">
@@ -331,7 +329,7 @@ const Profile = () => {
                           name="full_name"
                           value={formData.full_name}
                           onChange={handleChange}
-                          className="block p-2.5 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="block p-2.5 w-full rounded-md border-gray-300 shadow-sm focus:border-logo-vibrant-blue focus:ring-logo-vibrant-blue sm:text-sm"
                         />
                       </div>
                     </div>
@@ -350,7 +348,7 @@ const Profile = () => {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="block p-2.5 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="block p-2.5 w-full rounded-md border-gray-300 shadow-sm focus:border-logo-vibrant-blue focus:ring-logo-vibrant-blue sm:text-sm"
                         />
                       </div>
                     </div>
@@ -360,14 +358,14 @@ const Profile = () => {
                       <button
                         type="button"
                         onClick={handleCancel}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        className="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 bg-white hover:bg-gray-50">
                         <X className="h-4 w-4 inline mr-1" />
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={saving}
-                        className="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                        className="px-4 py-2 border border-transparent text-sm font-medium rounded-xl shadow-sm text-white bg-logo-vibrant-blue hover:bg-logo-dark-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-logo-vibrant-blue disabled:opacity-50">
                         <Save className="h-4 w-4 inline mr-1" />
                         {saving ? "Saving..." : "Save Changes"}
                       </button>
@@ -380,7 +378,7 @@ const Profile = () => {
                   onSubmit={handlePasswordSubmit}
                   className="max-w-md mx-auto">
                   <div className="space-y-6">
-                    <h3 className="text-lg font-medium text-gray-900">Change Password</h3>
+                    <h3 className="text-lg font-medium text-logo-dark-blue">Change Password</h3>
 
                     {/* New Password */}
                     <div>
@@ -396,7 +394,7 @@ const Profile = () => {
                           name="newPassword"
                           value={passwordData.newPassword}
                           onChange={handlePasswordChange}
-                          className="block w-full p-2.5 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="block w-full p-2.5 rounded-md border-gray-300 shadow-sm focus:border-logo-vibrant-blue focus:ring-logo-vibrant-blue sm:text-sm"
                           required
                         />
                         <button
@@ -423,7 +421,7 @@ const Profile = () => {
                           name="confirmPassword"
                           value={passwordData.confirmPassword}
                           onChange={handlePasswordChange}
-                          className="block w-full p-2.5 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="block w-full p-2.5 rounded-md border-gray-300 shadow-sm focus:border-logo-vibrant-blue focus:ring-logo-vibrant-blue sm:text-sm"
                           required
                         />
                         <button
@@ -447,7 +445,7 @@ const Profile = () => {
                       <button
                         type="submit"
                         disabled={saving}
-                        className="rounded-xl py-2 px-4 border border-transparent text-sm font-medium shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                        className="rounded-xl py-2 px-4 border border-transparent text-sm font-medium shadow-sm text-white bg-logo-vibrant-blue hover:bg-logo-dark-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-logo-vibrant-blue disabled:opacity-50">
                         <Save className="h-4 w-4 inline mr-1" />
                         {saving ? "Updating..." : "Update Password"}
                       </button>
@@ -459,14 +457,14 @@ const Profile = () => {
                 <div className="space-y-6">
                   {/* Contact Information */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Contact Information</h3>
+                    <h3 className="text-lg font-medium text-logo-dark-blue">Contact Information</h3>
                     <div className="mt-3 space-y-4">
                       <div className="flex items-center text-gray-700">
-                        <Mail className="h-5 w-5 mr-2 text-gray-400" />
+                        <Mail className="h-5 w-5 mr-2 text-logo-light-blue" />
                         <span>{profile.email}</span>
                       </div>
                       <div className="flex items-center text-gray-700">
-                        <Phone className="h-5 w-5 mr-2 text-gray-400" />
+                        <Phone className="h-5 w-5 mr-2 text-logo-light-blue" />
                         <span>{profile.phone || "No phone number added"}</span>
                       </div>
                     </div>
@@ -474,15 +472,15 @@ const Profile = () => {
 
                   {/* Password Section */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">Security</h3>
+                    <h3 className="text-lg font-medium text-logo-dark-blue">Security</h3>
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center text-gray-700">
-                        <Lock className="h-5 w-5 mr-2 text-gray-400" />
+                        <Lock className="h-5 w-5 mr-2 text-logo-light-blue" />
                         <span>Password</span>
                       </div>
                       <button
                         onClick={() => setPasswordMode(true)}
-                        className="text-sm text-white rounded-xl py-2 px-4 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        className="text-sm text-white rounded-xl py-2 px-4 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400">
                         Change
                       </button>
                     </div>

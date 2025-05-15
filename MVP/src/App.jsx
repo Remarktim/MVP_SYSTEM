@@ -1,7 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, lazy, Suspense } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
+import AdminRoute from "./components/admin/AdminRoute";
 
 // Lazily load page components
 const Login = lazy(() => import("./components/auth/Login"));

@@ -252,14 +252,14 @@ const UserReports = () => {
         {/* Reports feed with product card design */}
         {loading ? (
           <div className="text-center py-10">
-            <div className="spinner">Loading...</div>
+            <div className="spinner animate-pulse-circle text-logo-vibrant-blue">Loading...</div>
           </div>
         ) : displayIssues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayIssues.map((issue) => (
               <div
                 key={issue.id}
-                className="max-w-md rounded-xl overflow-hidden shadow-md hover:shadow-lg bg-white cursor-pointer"
+                className="max-w-md rounded-xl overflow-hidden shadow-lg hover:shadow-xl bg-white cursor-pointer transition-shadow duration-300 ease-in-out"
                 onClick={() => navigate(`/issues/${issue.id}`)}>
                 {/* Image section with status badge */}
                 <div className="relative">
@@ -274,16 +274,16 @@ const UserReports = () => {
                       }}
                     />
                   ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-t-xl">
                       <span className="text-gray-500">No image available</span>
                     </div>
                   )}
-                  <div className={`absolute top-0 right-0 ${getStatusColor(issue.status)} px-2 py-1 m-2 rounded-md text-sm font-medium`}>{issue.status}</div>
+                  <div className={`absolute top-0 right-0 ${getStatusColor(issue.status)} px-2 py-1 m-2 rounded-lg text-xs font-semibold`}>{issue.status}</div>
                 </div>
 
                 {/* Content section */}
                 <div className="p-4">
-                  <h3 className="text-lg font-medium mb-2">{issue.title}</h3>
+                  <h3 className="text-lg font-medium mb-2 text-logo-dark-blue">{issue.title}</h3>
                   <p className="text-gray-600 text-sm mb-3 overflow-y-auto break-words leading-relaxed max-h-20 line-clamp-3">{issue.description}</p>
                   <p className="text-gray-500 text-xs mb-4">📍 {issue.location || "No location specified"}</p>
                   <p className="text-gray-500 text-xs mb-4">📅 Reported: {new Date(issue.created_at).toLocaleDateString()}</p>
@@ -291,7 +291,7 @@ const UserReports = () => {
                   {/* Action buttons */}
                   <div className="flex items-center justify-between">
                     <button
-                      className="text-red-500 hover:text-red-700 font-medium py-1 px-2 rounded flex items-center"
+                      className="text-red-500 hover:text-red-700 font-medium py-1 px-2 rounded-lg flex items-center"
                       onClick={(e) => openDeleteModal(e, issue)}>
                       <Trash2
                         size={16}
@@ -300,7 +300,7 @@ const UserReports = () => {
                       Delete
                     </button>
                     <button
-                      className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl"
+                      className="bg-logo-vibrant-blue hover:bg-logo-dark-blue text-white font-bold py-2 px-4 rounded-xl transition-colors duration-300 ease-in-out"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/issues/${issue.id}`);
@@ -313,8 +313,8 @@ const UserReports = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-10 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-medium text-gray-900">
+          <div className="text-center py-10 bg-white rounded-lg shadow-md">
+            <h3 className="text-lg font-medium text-logo-dark-blue">
               {searchTerm ? "No matching reports found" : activeFilter === "all" ? "You haven't reported any issues yet" : `No ${activeFilter.replace("-", " ")} reports found`}
             </h3>
             <p className="mt-1 text-sm text-gray-500">

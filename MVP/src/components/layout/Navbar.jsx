@@ -1,10 +1,11 @@
 // Updated Navbar.jsx component with Admin Dashboard link
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BarChart2, Home, Clipboard, ShieldCheck, Gift, MessageCircle, PieChart, Users } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../supabase";
+import AppLogo from "../logo/AppLogo"; // Import the new logo component
 
 const Navbar = () => {
   const location = useLocation();
@@ -47,7 +48,7 @@ const Navbar = () => {
 
   // Helper to determine active link
   const isActive = (path) => {
-    return location.pathname === path ? "text-indigo-600 border-indigo-600" : "text-gray-500 border-transparent hover:text-indigo-500 hover:border-indigo-500";
+    return location.pathname === path ? "text-logo-vibrant-blue border-logo-vibrant-blue" : "text-gray-500 border-transparent hover:text-logo-dark-blue hover:border-logo-dark-blue";
   };
 
   // Check if current page is the submit issue page
@@ -84,7 +85,11 @@ const Navbar = () => {
         <div className="hidden md:flex md:items-center md:justify-between h-16 px-4 sm:px-6 lg:px-8">
           {/* Left section - Logo */}
           <div className="flex items-center flex-shrink-0 w-1/4">
-            <h1 className="ml-2 text-xl font-bold text-gray-800">Community Connect MVP</h1>
+            <Link
+              to={user ? "/dashboard" : "/"}
+              className="flex items-center">
+              <AppLogo />
+            </Link>
           </div>
 
           {/* Center section - Navigation Links */}
@@ -123,7 +128,7 @@ const Navbar = () => {
                 ref={trigger}
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center">
-                <div className="relative w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white hover:bg-indigo-700">
+                <div className="relative w-10 h-10 rounded-full bg-logo-vibrant-blue flex items-center justify-center text-white hover:bg-logo-dark-blue">
                   <span className="text-lg font-medium">{userInitial}</span>
                   <span className="absolute -right-0.5 -top-0.5 block h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
                 </div>
@@ -135,13 +140,13 @@ const Navbar = () => {
                 className={`absolute right-0 top-full mt-1 w-[240px] divide-y z-50 divide-gray-200 overflow-hidden rounded-lg bg-white shadow-lg ${dropdownOpen ? "block" : "hidden"}`}>
                 <div className="flex flex-col px-4 py-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="relative aspect-square w-10 rounded-full bg-indigo-600 flex items-center justify-center text-white">
+                    <div className="relative aspect-square w-10 rounded-full bg-logo-vibrant-blue flex items-center justify-center text-white">
                       <span className="text-lg font-medium">{userInitial}</span>
                       <span className="absolute -right-0.5 -top-0.5 block h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800">{fullName}</p>
-                      {hasAdminRole && <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Admin</span>}
+                      {hasAdminRole && <span className="text-xs px-2 py-0.5 bg-logo-light-blue text-logo-dark-blue rounded-full">Admin</span>}
                     </div>
                   </div>
                   <div className="mt-1 py-2 px-3 bg-gray-50 rounded-md">
@@ -159,7 +164,7 @@ const Navbar = () => {
                   {hasAdminRole && (
                     <Link
                       to="/admin"
-                      className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-indigo-700 hover:bg-gray-50">
+                      className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-logo-vibrant-blue hover:bg-gray-50">
                       <span className="flex items-center">
                         <ShieldCheck className="mr-2 h-4 w-4" />
                         Admin Dashboard
@@ -182,26 +187,29 @@ const Navbar = () => {
         {/* Mobile navbar - Top */}
         <div className="md:hidden flex items-center justify-between h-16 px-4">
           <div className="flex items-center">
-            <BarChart2 className="h-8 w-8 text-indigo-600" />
-            <h1 className="ml-2 text-xl font-bold text-gray-800">Community Connect MVP</h1>
+            <Link
+              to={user ? "/dashboard" : "/"}
+              className="flex items-center">
+              <AppLogo />
+            </Link>
           </div>
 
           {/* Admin badge for mobile */}
-          {hasAdminRole && <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">Admin</span>}
+          {hasAdminRole && <span className="text-xs px-2 py-1 bg-logo-light-blue text-logo-dark-blue rounded-full">Admin</span>}
         </div>
 
         {/* Mobile navbar - Bottom */}
-        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 z-50">
+        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-logo-light-blue z-50">
           <div className="flex justify-between px-4 py-3">
             <Link
               to="/dashboard"
-              className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/dashboard" ? "text-indigo-600" : "text-gray-500"}`}>
+              className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/dashboard" ? "text-logo-vibrant-blue" : "text-gray-500"}`}>
               <Home className="h-6 w-6" />
               <span className="text-xs mt-1">Home</span>
             </Link>
             <Link
               to="/my-issues"
-              className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/my-issues" ? "text-indigo-600" : "text-gray-500"}`}>
+              className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/my-issues" ? "text-logo-vibrant-blue" : "text-gray-500"}`}>
               <Clipboard className="h-6 w-6" />
               <span className="text-xs mt-1">My Reports</span>
             </Link>
@@ -210,7 +218,7 @@ const Navbar = () => {
             {hasAdminRole && (
               <Link
                 to="/admin"
-                className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/admin" ? "text-indigo-600" : "text-gray-500"}`}>
+                className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/admin" ? "text-logo-vibrant-blue" : "text-gray-500"}`}>
                 <ShieldCheck className="h-6 w-6" />
                 <span className="text-xs mt-1">Admin</span>
               </Link>
@@ -220,8 +228,8 @@ const Navbar = () => {
             {!isSubmitPage ? (
               <Link
                 to="/submit-issue"
-                className="flex flex-col items-center px-3 py-1 rounded-md text-indigo-600">
-                <div className="bg-indigo-600 text-white rounded-full p-1.5 shadow-md">
+                className="flex flex-col items-center px-3 py-1 rounded-md text-logo-vibrant-blue">
+                <div className="bg-logo-vibrant-blue text-white rounded-full p-1.5 shadow-md">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -239,8 +247,8 @@ const Navbar = () => {
                 <span className="text-xs mt-1">Report</span>
               </Link>
             ) : (
-              <div className="flex flex-col items-center px-3 py-1 rounded-md text-indigo-600">
-                <div className="bg-indigo-600 text-white rounded-full p-1.5 shadow-md">
+              <div className="flex flex-col items-center px-3 py-1 rounded-md text-logo-vibrant-blue">
+                <div className="bg-logo-vibrant-blue text-white rounded-full p-1.5 shadow-md">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -262,9 +270,9 @@ const Navbar = () => {
             {/* Profile button for mobile - opens the profile page */}
             <Link
               to="/profile"
-              className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/profile" ? "text-indigo-600" : "text-gray-500"}`}>
+              className={`flex flex-col items-center px-3 py-1 rounded-md ${location.pathname === "/profile" ? "text-logo-vibrant-blue" : "text-gray-500"}`}>
               <div className="relative">
-                <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs">{userInitial}</div>
+                <div className="w-6 h-6 rounded-full bg-logo-vibrant-blue flex items-center justify-center text-white text-xs">{userInitial}</div>
                 <span className="absolute -right-0.5 -top-0.5 block h-1.5 w-1.5 rounded-full border-1 border-white bg-green-500"></span>
               </div>
               <span className="text-xs mt-1">Profile</span>

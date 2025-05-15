@@ -29,11 +29,11 @@ const Header = ({ title = "Completed Reports", showSearch = true, onSearch = nul
   };
 
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="bg-white border-b border-logo-light-blue">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-col md:flex-row md:items-center">
           {/* Page Title - Full width on mobile, left-aligned on desktop */}
-          <h1 className="text-lg font-semibold text-gray-800 mb-4 md:mb-0 md:w-1/4">{title}</h1>
+          <h1 className="text-lg font-semibold text-logo-dark-blue mb-4 md:mb-0 md:w-1/4">{title}</h1>
 
           {/* Center Section - Search Bar (conditionally shown) */}
           {showSearch && (
@@ -47,7 +47,7 @@ const Header = ({ title = "Completed Reports", showSearch = true, onSearch = nul
                     placeholder="Search reports..."
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="w-full py-2 px-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full py-2 px-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-logo-vibrant-blue focus:border-transparent"
                   />
                   <button
                     type="submit"
@@ -63,7 +63,7 @@ const Header = ({ title = "Completed Reports", showSearch = true, onSearch = nul
             {!isSubmitPage && (
               <Link
                 to="/submit-issue"
-                className="inline-flex items-center rounded-xl py-2 px-4 border border-transparent text-sm font-medium  shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                className="inline-flex items-center rounded-xl py-2 px-4 border border-transparent text-sm font-medium shadow-sm text-white bg-logo-vibrant-blue hover:bg-logo-dark-blue">
                 Report New Issue
               </Link>
             )}

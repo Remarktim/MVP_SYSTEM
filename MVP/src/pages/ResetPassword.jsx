@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase";
+import AppLogo from "../../components/logo/AppLogo";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -75,13 +76,11 @@ const ResetPassword = () => {
     <div className="bg-gray-50">
       <div className="min-h-screen flex flex-col items-center justify-center py-6 px-4">
         <div className="max-w-md w-full">
-          {/* You can replace this with your logo */}
-          <div className="w-40 mb-8 mx-auto block">
-            <h1 className="text-2xl font-bold text-indigo-600 text-center">Community Connect MVP</h1>
-          </div>
-
-          <div className="p-8 rounded-2xl bg-white shadow">
-            <h2 className="text-slate-900 text-center text-3xl font-semibold">Reset Password</h2>
+          <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
+            <div className="flex justify-center mb-6">
+              <AppLogo />
+            </div>
+            <h2 className="text-xl font-semibold text-center text-gray-700 mb-6">Reset Password</h2>
 
             {error && <div className="mt-4 rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
 
