@@ -1,28 +1,29 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, lazy, Suspense } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
-import Login from "./components/auth/Login";
-import Signup from "./components/auth/Signup";
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import UserReports from "./pages/UserReports";
-import IssueDetail from "./pages/IssueDetail";
-import ResetPassword from "./pages/ResetPassword";
-import SubmitIssue from "./pages/SubmitIssue";
-import Profile from "./pages/Profile";
-import AdminLayout from "./components/layout/AdminLayout";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminCharts from "./pages/AdminCharts";
-import AdminIssues from "./pages/AdminIssues";
-import AdminUsers from "./pages/AdminUsers";
-import AdminSettings from "./pages/AdminSettings";
-import ReportDetail from "./pages/ReportDetail";
-import AuthRedirect from "./pages/AuthRedirect";
-import DatabaseIssues from "./pages/admin/DatabaseIssues";
-import AdminProfile from "./pages/admin/AdminProfile";
-import AdminLogin from "./components/admin/AdminLogin";
-import AdminRoute from "./components/admin/AdminRoute";
+
+// Lazily load page components
+const Login = lazy(() => import("./components/auth/Login"));
+const Signup = lazy(() => import("./components/auth/Signup"));
+const Home = lazy(() => import("./pages/Home"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const UserReports = lazy(() => import("./pages/UserReports"));
+const IssueDetail = lazy(() => import("./pages/IssueDetail"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const SubmitIssue = lazy(() => import("./pages/SubmitIssue"));
+const Profile = lazy(() => import("./pages/Profile"));
+const AdminLayout = lazy(() => import("./components/layout/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminCharts = lazy(() => import("./pages/AdminCharts"));
+const AdminIssues = lazy(() => import("./pages/AdminIssues"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const ReportDetail = lazy(() => import("./pages/ReportDetail"));
+const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
+const DatabaseIssues = lazy(() => import("./pages/admin/DatabaseIssues"));
+const AdminProfile = lazy(() => import("./pages/admin/AdminProfile"));
+const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
 
 // Protected route component
 const ProtectedRoute = () => {
@@ -45,99 +46,101 @@ function App() {
     <Router>
       <AuthProvider>
         <Toaster position="top-right" />
-        <Routes>
-          {/* Public routes */}
-          <Route
-            path="/"
-            element={<AuthRedirect />}
-          />
-          <Route
-            path="/login"
-            element={<Login />}
-          />
-          <Route
-            path="/signup"
-            element={<Signup />}
-          />
-          <Route
-            path="/reset-password"
-            element={<ResetPassword />}
-          />
-          <Route
-            path="/home"
-            element={<Home />}
-          />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Routes>
+            {/* Public routes */}
+            <Route
+              path="/"
+              element={<AuthRedirect />}
+            />
+            <Route
+              path="/login"
+              element={<Login />}
+            />
+            <Route
+              path="/signup"
+              element={<Signup />}
+            />
+            <Route
+              path="/reset-password"
+              element={<ResetPassword />}
+            />
+            <Route
+              path="/home"
+              element={<Home />}
+            />
 
-          {/* Admin Login - separate from user login */}
-          <Route
-            path="/admin-login"
-            element={<AdminLogin />}
-          />
+            {/* Admin Login - separate from user login */}
+            <Route
+              path="/admin-login"
+              element={<AdminLogin />}
+            />
 
-          {/* Protected user routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route
-              path="/dashboard"
-              element={<Dashboard />}
-            />
-            <Route
-              path="/my-issues"
-              element={<UserReports />}
-            />
-            <Route
-              path="/issues/:id"
-              element={<IssueDetail />}
-            />
-            <Route
-              path="/submit-issue"
-              element={<SubmitIssue />}
-            />
-            <Route
-              path="/profile"
-              element={<Profile />}
-            />
-          </Route>
-
-          {/* Admin routes - using new AdminRoute component */}
-          <Route element={<AdminRoute />}>
-            <Route
-              path="/admin"
-              element={<AdminLayout />}>
+            {/* Protected user routes */}
+            <Route element={<ProtectedRoute />}>
               <Route
-                index
-                element={<AdminDashboard />}
+                path="/dashboard"
+                element={<Dashboard />}
               />
               <Route
-                path="charts"
-                element={<AdminCharts />}
+                path="/my-issues"
+                element={<UserReports />}
               />
               <Route
-                path="issues"
-                element={<AdminIssues />}
+                path="/issues/:id"
+                element={<IssueDetail />}
               />
               <Route
-                path="reports/:id"
-                element={<ReportDetail />}
+                path="/submit-issue"
+                element={<SubmitIssue />}
               />
               <Route
-                path="users"
-                element={<AdminUsers />}
-              />
-              <Route
-                path="database/issues"
-                element={<DatabaseIssues />}
-              />
-              <Route
-                path="profile"
-                element={<AdminProfile />}
-              />
-              <Route
-                path="settings"
-                element={<AdminSettings />}
+                path="/profile"
+                element={<Profile />}
               />
             </Route>
-          </Route>
-        </Routes>
+
+            {/* Admin routes - using new AdminRoute component */}
+            <Route element={<AdminRoute />}>
+              <Route
+                path="/admin"
+                element={<AdminLayout />}>
+                <Route
+                  index
+                  element={<AdminDashboard />}
+                />
+                <Route
+                  path="charts"
+                  element={<AdminCharts />}
+                />
+                <Route
+                  path="issues"
+                  element={<AdminIssues />}
+                />
+                <Route
+                  path="reports/:id"
+                  element={<ReportDetail />}
+                />
+                <Route
+                  path="users"
+                  element={<AdminUsers />}
+                />
+                <Route
+                  path="database/issues"
+                  element={<DatabaseIssues />}
+                />
+                <Route
+                  path="profile"
+                  element={<AdminProfile />}
+                />
+                <Route
+                  path="settings"
+                  element={<AdminSettings />}
+                />
+              </Route>
+            </Route>
+          </Routes>
+        </Suspense>
       </AuthProvider>
     </Router>
   );
