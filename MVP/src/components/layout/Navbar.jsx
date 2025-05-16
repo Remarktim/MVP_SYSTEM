@@ -79,7 +79,7 @@ const Navbar = () => {
   const hasAdminRole = isAdmin || user?.app_metadata?.role === "admin" || user?.user_metadata?.role === "admin";
 
   return (
-    <div className="bg-white shadow-sm">
+    <div className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto">
         {/* Desktop navbar - with 3 sections */}
         <div className="hidden md:flex md:items-center md:justify-between h-16 px-4 sm:px-6 lg:px-8">

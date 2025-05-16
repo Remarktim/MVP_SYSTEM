@@ -48,7 +48,7 @@ function App() {
     <Router>
       <AuthProvider>
         <Toaster position="top-right" />
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div></div>}>
           <Routes>
             {/* Public routes */}
             <Route

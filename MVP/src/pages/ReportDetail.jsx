@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiUpload, FiCheck, FiX, FiAlertTriangle } from "react-icons/fi";
 import { supabase, getAdminClient } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
+import LikeButton from "../components/LikeButton";
 
 // Rejection Modal Component
 const RejectionModal = ({ isOpen, onClose, onReject }) => {
@@ -460,6 +461,13 @@ export default function ReportDetail() {
                   {report.status}
                 </span>
                 <span className="ml-2 text-sm text-gray-500 border border-gray-200 rounded-full px-2">{report.category}</span>
+
+                <div className="ml-4">
+                  <LikeButton
+                    issueId={report.id}
+                    size="default"
+                  />
+                </div>
               </div>
             </div>
             <div className="text-right">
