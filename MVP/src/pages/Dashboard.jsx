@@ -1,18 +1,14 @@
-// src/pages/Dashboard.jsx - With separate Header component
 import { useState, useEffect } from "react";
-import { supabase } from "../supabase"; // Add Supabase import
-import { useAuth } from "../hooks/useAuth"; // Add useAuth import for current user
+import { supabase } from "../supabase";
+import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Header from "../components/layout/Header";
-import { PLACEHOLDER_IMAGE } from "../placeholderImage"; // Import from placeholderImage.js
+import { PLACEHOLDER_IMAGE } from "../placeholderImage";
 import NewlyAddedReports from "../components/NewlyAddedReports";
 import TopViewReports from "../components/TopViewReports";
-import LikeButton from "../components/LikeButton"; // Import LikeButton component
+import LikeButton from "../components/LikeButton";
 
-// Default placeholder for missing images - imported from placeholderImage.js
-
-// IssuePostCard Component
 const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError }) => {
   return (
     <article
@@ -197,7 +193,7 @@ const Dashboard = () => {
       {/* Changed bg to gray-100 for better contrast with cards */}
       <Navbar />
       <Header
-        title="In Progress & Completed Reports"
+        title="Reports Feed"
         onSearch={handleSearch}
       />
       <main className="flex flex-col md:flex-row max-w-screen-xl mx-auto gap-6 p-4 ">
