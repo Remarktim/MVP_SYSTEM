@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PLACEHOLDER_IMAGE } from "../sampleData"; // Import directly
+import { PLACEHOLDER_IMAGE } from "../placeholderImage"; // Import from placeholderImage.js
 import LikeButton from "./LikeButton"; // Import LikeButton component
 
 const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError, isTopReport = false, reportIndex }) => {

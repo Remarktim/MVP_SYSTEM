@@ -5,13 +5,12 @@ import { useAuth } from "../hooks/useAuth"; // Add useAuth import for current us
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Header from "../components/layout/Header";
-import { PLACEHOLDER_IMAGE } from "../sampleData"; // Keep only the placeholder import
+import { PLACEHOLDER_IMAGE } from "../placeholderImage"; // Import from placeholderImage.js
 import NewlyAddedReports from "../components/NewlyAddedReports";
 import TopViewReports from "../components/TopViewReports";
 import LikeButton from "../components/LikeButton"; // Import LikeButton component
 
-// Default placeholder for missing images - now imported from sampleData.js
-// const PLACEHOLDER_IMAGE = "/placeholder-image.jpg";
+// Default placeholder for missing images - imported from placeholderImage.js
 
 // IssuePostCard Component
 const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError }) => {
