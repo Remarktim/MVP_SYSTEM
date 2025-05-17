@@ -206,6 +206,14 @@ const Signup = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({
+    score: 0,
+    hasMinLength: false,
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
 
   const navigate = useNavigate();
 
@@ -216,6 +224,58 @@ const Signup = () => {
     if (name === "email") {
       setEmailError(null);
     }
+
+    if (name === "password") {
+      checkPasswordStrength(value);
+    }
+  };
+
+  const checkPasswordStrength = (password) => {
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+    let score = 0;
+    if (hasMinLength) score++;
+    if (hasUpperCase) score++;
+    if (hasLowerCase) score++;
+    if (hasNumber) score++;
+    if (hasSpecialChar) score++;
+
+    setPasswordStrength({
+      score,
+      hasMinLength,
+      hasUpperCase,
+      hasLowerCase,
+      hasNumber,
+      hasSpecialChar,
+    });
+  };
+
+  const getPasswordStrengthColor = () => {
+    const { score } = passwordStrength;
+    if (score === 0) return "bg-gray-300";
+    if (score < 3) return "bg-red-500";
+    if (score < 5) return "bg-yellow-500";
+    return "bg-green-500";
+  };
+
+  const getPasswordStrengthTextColor = () => {
+    const { score } = passwordStrength;
+    if (score === 0) return "text-gray-500";
+    if (score < 3) return "text-red-500";
+    if (score < 5) return "text-yellow-500";
+    return "text-green-500";
+  };
+
+  const getPasswordStrengthText = () => {
+    const { score } = passwordStrength;
+    if (score === 0) return "";
+    if (score < 3) return "Weak";
+    if (score < 5) return "Medium";
+    return "Strong";
   };
 
   const handleContactNumberChange = (e) => {
@@ -269,6 +329,13 @@ const Signup = () => {
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match");
+      setLoading(false);
+      return;
+    }
+
+    // Check password strength
+    if (passwordStrength.score < 3) {
+      setError("Please create a stronger password. It should have at least 8 characters, uppercase and lowercase letters, numbers, and special characters.");
       setLoading(false);
       return;
     }
@@ -495,6 +562,25 @@ const Signup = () => {
                   {showPassword ? <EyeSlashIcon className="h-5 w-5 text-gray-400" /> : <EyeIcon className="h-5 w-5 text-gray-400" />}
                 </button>
               </div>
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="flex-1 h-1.5 bg-gray-200 rounded-full">
+                      <div
+                        className={`h-1.5 rounded-full ${getPasswordStrengthColor()}`}
+                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}></div>
+                    </div>
+                    <span className={`text-xs font-medium ${getPasswordStrengthTextColor()}`}>{getPasswordStrengthText()}</span>
+                  </div>
+                  <ul className="text-xs space-y-1 mt-2">
+                    <li className={passwordStrength.hasMinLength ? "text-green-600" : "text-gray-500"}>✓ At least 8 characters</li>
+                    <li className={passwordStrength.hasUpperCase ? "text-green-600" : "text-gray-500"}>✓ At least one uppercase letter</li>
+                    <li className={passwordStrength.hasLowerCase ? "text-green-600" : "text-gray-500"}>✓ At least one lowercase letter</li>
+                    <li className={passwordStrength.hasNumber ? "text-green-600" : "text-gray-500"}>✓ At least one number</li>
+                    <li className={passwordStrength.hasSpecialChar ? "text-green-600" : "text-gray-500"}>✓ At least one special character</li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div>
