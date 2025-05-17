@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiUpload, FiCheck, FiX, FiAlertTriangle } from "react-icons/fi";
-import { supabase, getAdminClient } from "../supabase";
+import { supabase, adminSupabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
-import LikeButton from "../components/LikeButton";
 
 // Rejection Modal Component
 const RejectionModal = ({ isOpen, onClose, onReject }) => {
@@ -178,19 +177,16 @@ export default function ReportDetail() {
     try {
       console.log("Accepting report with ID:", id);
 
-      // Use a more direct update approach
-      const admin = getAdminClient();
-      if (!admin) {
-        throw new Error("Admin client not available");
-      }
-
-      const { error } = await admin
-        .from("issues")
-        .update({
-          status: "In Progress",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
+      // Use the adminSupabase function
+      const { error } = await adminSupabase((client) =>
+        client
+          .from("issues")
+          .update({
+            status: "In Progress",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+      );
 
       if (error) {
         console.error("Error accepting report:", error);
@@ -229,20 +225,17 @@ export default function ReportDetail() {
     try {
       console.log("Rejecting report with ID:", id);
 
-      // Use a more direct update approach
-      const admin = getAdminClient();
-      if (!admin) {
-        throw new Error("Admin client not available");
-      }
-
-      const { error } = await admin
-        .from("issues")
-        .update({
-          status: "Rejected",
-          resolved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
+      // Use the adminSupabase function
+      const { error } = await adminSupabase((client) =>
+        client
+          .from("issues")
+          .update({
+            status: "Rejected",
+            resolved_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+      );
 
       if (error) {
         console.error("Error rejecting report:", error);
@@ -287,19 +280,6 @@ export default function ReportDetail() {
     try {
       console.log("Completing report with ID:", id);
 
-      // Get admin client - Use a try/catch specifically for this step
-      let admin;
-      try {
-        admin = getAdminClient();
-        if (!admin) {
-          throw new Error("Admin client not available");
-        }
-      } catch (adminError) {
-        console.error("Error getting admin client:", adminError);
-        // Fall back to regular supabase client on the user side
-        admin = supabase;
-      }
-
       // First upload the after image to storage
       const file = afterImage;
       const fileExt = file.name.split(".").pop();
@@ -308,31 +288,35 @@ export default function ReportDetail() {
 
       console.log("Uploading after image:", filePath);
 
-      // Upload to Supabase Storage - Handle different client structures
-      const { error: uploadError } = await (admin.storage ? admin.storage.from("issue-images").upload(filePath, file) : admin.from("storage").from("issue-images").upload(filePath, file));
+      // Upload image using adminSupabase or fallback to regular supabase
+      const { error: uploadError } = await adminSupabase((client) => client.storage.from("issue-images").upload(filePath, file)).catch(() => {
+        // Fallback to regular supabase if admin fails
+        return supabase.storage.from("issue-images").upload(filePath, file);
+      });
 
       if (uploadError) {
         console.error("Error uploading image:", uploadError);
         throw uploadError;
       }
 
-      // Get public URL for the uploaded image - Handle different client structures
-      const { data: urlData } = admin.storage ? admin.storage.from("issue-images").getPublicUrl(filePath) : admin.from("storage").from("issue-images").getPublicUrl(filePath);
-
+      // Get public URL
+      const { data: urlData } = supabase.storage.from("issue-images").getPublicUrl(filePath);
       const afterImageUrl = urlData?.publicUrl;
 
       console.log("Image uploaded successfully, URL:", afterImageUrl);
 
-      // Update the report
-      const { error } = await admin
-        .from("issues")
-        .update({
-          status: "Completed",
-          after_image_path: afterImageUrl,
-          resolved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
+      // Update the report using adminSupabase
+      const { error } = await adminSupabase((client) =>
+        client
+          .from("issues")
+          .update({
+            status: "Completed",
+            after_image_path: afterImageUrl,
+            resolved_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+      );
 
       if (error) {
         console.error("Error completing report:", error);
@@ -461,13 +445,6 @@ export default function ReportDetail() {
                   {report.status}
                 </span>
                 <span className="ml-2 text-sm text-gray-500 border border-gray-200 rounded-full px-2">{report.category}</span>
-
-                <div className="ml-4">
-                  <LikeButton
-                    issueId={report.id}
-                    size="default"
-                  />
-                </div>
               </div>
             </div>
             <div className="text-right">

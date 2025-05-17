@@ -1,10 +1,10 @@
-import React from "react";
+import React, { memo } from "react";
 import IssuePostCard from "./IssuePostCard";
 
-const NewlyAddedReports = ({ issues, navigate, formatTimeAgo, handleImageError }) => {
+const NewlyAddedReports = memo(({ issues, navigate, formatTimeAgo, handleImageError }) => {
   return (
     <section>
-      <h2 className="text-xl font-semibold text-gray-800 px-3 py-4 sticky top-48 md:top-40 bg-white z-10 border-b border-gray-200">📰 Newly Added Reports</h2>
+      <h2 className="text-xl font-semibold text-gray-800 px-3 py-4 sticky top-48 md:top-36 bg-white z-10 border-b border-gray-200">📅 Recent Reports</h2>
       {issues.length > 0 ? (
         <div className="divide-y divide-gray-200">
           {issues.map((issue) => (
@@ -25,6 +25,8 @@ const NewlyAddedReports = ({ issues, navigate, formatTimeAgo, handleImageError }
       )}
     </section>
   );
-};
+});
+
+NewlyAddedReports.displayName = "NewlyAddedReports";
 
 export default NewlyAddedReports;

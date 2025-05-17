@@ -13,12 +13,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const sessionOptions = {
   persistSession: true,
   storageKey: "mvp_auth_token", // Use a single consistent key
-  storage: localStorage,
-  autoRefreshToken: true,
   detectSessionInUrl: true,
 };
 
-// Regular client for normal user operations
+// Create a single shared client instance
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: sessionOptions,
 });
@@ -27,42 +25,77 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // ADMIN FUNCTIONALITY
 // -------------------------------
 
-// Create a single admin client with different auth storage key to avoid conflicts
-let _adminClient = null;
+/**
+ * Get admin client for privileged operations.
+ * Returns a function that can be called to perform admin operations.
+ * This approach prevents creating multiple client instances.
+ *
+ * Usage:
+ * const { data, error } = await adminSupabase(
+ *   (client) => client.from('table').select('*')
+ * );
+ */
+// Create a single admin client instance that can be reused
+const createAdminClientOnce = () => {
+  let adminClientInstance = null;
 
-const createAdminClient = () => {
-  if (!supabaseServiceKey) {
-    console.error("Missing Supabase service role key");
-    return null;
-  }
-
-  // Only create the admin client once
-  if (!_adminClient) {
-    // Use a DIFFERENT storage key for admin to avoid conflicts
-    _adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        ...sessionOptions,
-        storageKey: "mvp_admin_auth_token", // Different key for admin
-      },
-    });
-  }
-
-  return _adminClient;
+  return () => {
+    if (!adminClientInstance && supabaseServiceKey) {
+      adminClientInstance = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          ...sessionOptions,
+          storageKey: "mvp_admin_auth_token", // Use a different storage key
+        },
+      });
+    }
+    return adminClientInstance;
+  };
 };
 
-// Export the admin client getter function
-export const getAdminClient = createAdminClient;
+const getAdminClient = createAdminClientOnce();
 
-// For backward compatibility with code that imports supabaseAdmin
-export const supabaseAdmin = getAdminClient();
-
-// Helper function for admin operations
-export const adminQuery = async (callback) => {
-  const adminClient = getAdminClient();
-  if (!adminClient) {
-    throw new Error("Admin client not available");
+export const adminSupabase = async (callback) => {
+  if (!supabaseServiceKey) {
+    console.error("Missing Supabase service role key");
+    return { data: null, error: new Error("Admin functionality not available") };
   }
-  return callback(adminClient);
+
+  try {
+    const adminClient = getAdminClient();
+    if (!adminClient) {
+      return { data: null, error: new Error("Admin client not available") };
+    }
+
+    // Execute the callback with the admin client
+    return await callback(adminClient);
+  } catch (error) {
+    console.error("Admin operation failed:", error);
+    return { data: null, error };
+  }
+};
+
+// Legacy method (deprecated) - will be removed in future version
+export const legacyGetAdminClient = () => {
+  console.warn("getAdminClient() is deprecated. Use adminSupabase() instead.");
+  return null; // Return null to enforce migration to adminSupabase
+};
+
+// Helper function for admin operations (backward compatibility)
+export const adminQuery = async (callback) => {
+  return adminSupabase(callback);
+};
+
+// Avoid using deprecated getAdminClient()
+// Instead, provide a utility object that uses adminSupabase internally
+export const supabaseAdmin = {
+  from: (table) => ({
+    select: (...args) => adminSupabase((client) => client.from(table).select(...args)),
+    insert: (...args) => adminSupabase((client) => client.from(table).insert(...args)),
+    update: (...args) => adminSupabase((client) => client.from(table).update(...args)),
+    delete: (...args) => adminSupabase((client) => client.from(table).delete(...args)),
+  }),
+  auth: supabase.auth,
+  storage: supabase.storage,
 };
 
 // -------------------------------

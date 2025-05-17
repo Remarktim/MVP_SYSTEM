@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { toggleLike, getLikeStatus, getLikeCount } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
 import { toast } from "react-hot-toast";
 
-const LikeButton = ({ issueId, initialCount = 0, initialLiked = false, size = "default" }) => {
+const LikeButton = memo(({ issueId, initialCount = 0, initialLiked = false, size = "default" }) => {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
@@ -11,11 +11,15 @@ const LikeButton = ({ issueId, initialCount = 0, initialLiked = false, size = "d
 
   // Fetch initial status if not provided
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchLikeData() {
       if (!issueId) return;
 
       try {
         const [statusResult, countResult] = await Promise.all([getLikeStatus(issueId), getLikeCount(issueId)]);
+
+        if (!isMounted) return;
 
         if (!statusResult.error) {
           setLiked(statusResult.data.liked);
@@ -30,39 +34,46 @@ const LikeButton = ({ issueId, initialCount = 0, initialLiked = false, size = "d
     }
 
     fetchLikeData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [issueId]);
 
-  const handleLikeClick = async (e) => {
-    e.stopPropagation(); // Prevent card click
+  const handleLikeClick = useCallback(
+    async (e) => {
+      e.stopPropagation(); // Prevent card click
 
-    if (loading) return;
+      if (loading) return;
 
-    if (!user) {
-      toast.error("Please sign in to like reports");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const { data, error } = await toggleLike(issueId);
-
-      if (error) {
-        toast.error(error.message || "Failed to update like status");
+      if (!user) {
+        toast.error("Please sign in to like reports");
         return;
       }
 
-      if (data) {
-        setLiked(data.liked);
-        setCount(data.count);
+      setLoading(true);
+
+      try {
+        const { data, error } = await toggleLike(issueId);
+
+        if (error) {
+          toast.error(error.message || "Failed to update like status");
+          return;
+        }
+
+        if (data) {
+          setLiked(data.liked);
+          setCount(data.count);
+        }
+      } catch (error) {
+        console.error("Error toggling like:", error);
+        toast.error("Something went wrong. Please try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error toggling like:", error);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [issueId, loading, user]
+  );
 
   // Determine the size classes
   const sizeClasses = size === "small" ? "h-4 w-4" : size === "large" ? "h-6 w-6" : "h-5 w-5";
@@ -93,6 +104,8 @@ const LikeButton = ({ issueId, initialCount = 0, initialLiked = false, size = "d
       </button>
     </div>
   );
-};
+});
+
+LikeButton.displayName = "LikeButton";
 
 export default LikeButton;

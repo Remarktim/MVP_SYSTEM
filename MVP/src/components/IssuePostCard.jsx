@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo, useMemo } from "react";
 import { PLACEHOLDER_IMAGE } from "../placeholderImage"; // Import from placeholderImage.js
 import LikeButton from "./LikeButton"; // Import LikeButton component
 
-const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError, isTopReport = false, reportIndex }) => {
+const IssuePostCard = memo(({ issue, navigate, formatTimeAgo, handleImageError, isTopReport = false, reportIndex }) => {
   const [isHovered, setIsHovered] = useState(false);
   // Default to 'after' if available, else 'before', or null if neither
   const [currentImageType, setCurrentImageType] = useState(() => {
@@ -27,20 +27,19 @@ const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError, isTop
     }
   };
 
-  let imageSrc = PLACEHOLDER_IMAGE;
-  if (currentImageType === "after" && issue.after_image_path) {
-    imageSrc = issue.after_image_path;
-  } else if (currentImageType === "before" && issue.before_image_path) {
-    imageSrc = issue.before_image_path;
-  } else if (issue.after_image_path) {
-    // Fallback if currentImageType was 'before' but no before_image
-    imageSrc = issue.after_image_path;
-    if (currentImageType !== "after") setCurrentImageType("after"); // Correct state
-  } else if (issue.before_image_path) {
-    // Fallback if currentImageType was 'after' but no after_image
-    imageSrc = issue.before_image_path;
-    if (currentImageType !== "before") setCurrentImageType("before"); // Correct state
-  }
+  // Use useMemo for image source calculation
+  const imageSrc = useMemo(() => {
+    if (currentImageType === "after" && issue.after_image_path) {
+      return issue.after_image_path;
+    } else if (currentImageType === "before" && issue.before_image_path) {
+      return issue.before_image_path;
+    } else if (issue.after_image_path) {
+      return issue.after_image_path;
+    } else if (issue.before_image_path) {
+      return issue.before_image_path;
+    }
+    return PLACEHOLDER_IMAGE;
+  }, [currentImageType, issue.after_image_path, issue.before_image_path]);
 
   // Reset image type if issue changes or images on current issue change
   useEffect(() => {
@@ -53,11 +52,13 @@ const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError, isTop
     }
   }, [issue.id, issue.after_image_path, issue.before_image_path]);
 
+  const handleCardClick = () => navigate(`/issues/${issue.id}`);
+
   return (
     <article
       key={issue.id}
       className="py-4 px-3 hover:bg-gray-50 transition-colors duration-150 cursor-pointer p"
-      onClick={() => navigate(`/issues/${issue.id}`)}>
+      onClick={handleCardClick}>
       <div className="flex space-x-3 items-start">
         {isTopReport && <div className="text-lg font-semibold text-gray-600 pt-2 pr-1">{reportIndex + 1}.</div>}
         <div className="flex-shrink-0">
@@ -85,6 +86,9 @@ const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError, isTop
             src={imageSrc}
             alt={issue.title || "Issue image"}
             onError={handleImageError}
+            loading="lazy"
+            width="600"
+            height="400"
           />
           {isHovered && hasBothImages && (
             <>
@@ -169,6 +173,8 @@ const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError, isTop
       </div>
     </article>
   );
-};
+});
+
+IssuePostCard.displayName = "IssuePostCard";
 
 export default IssuePostCard;

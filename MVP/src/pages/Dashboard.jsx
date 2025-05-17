@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +35,7 @@ const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError }) => 
             src={issue.after_image_path || issue.before_image_path || PLACEHOLDER_IMAGE}
             alt={issue.title || "Issue image"}
             onError={handleImageError}
+            loading="lazy"
           />
         </div>
       )}
@@ -113,34 +114,43 @@ const IssuePostCard = ({ issue, navigate, formatTimeAgo, handleImageError }) => 
 };
 
 const Dashboard = () => {
-  const [topIssues, setTopIssues] = useState([]);
-  const [newlyAddedIssues, setNewlyAddedIssues] = useState([]);
-  const [filteredNewlyAddedIssues, setFilteredNewlyAddedIssues] = useState([]);
+  const [issues, setIssues] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { user } = useAuth(); // Get authenticated user
+  const { user } = useAuth();
 
   useEffect(() => {
-    async function fetchApprovedOrCompletedIssues() {
+    async function fetchDashboardData() {
       try {
         setLoading(true);
         setError(null);
 
-        // Query issues table for approved or completed reports
-        const { data, error } = await supabase.from("issues").select("*, profiles:user_id(name)").or("status.eq.Completed,status.eq.In Progress").order("created_at", { ascending: false });
+        // Use a single efficient query to fetch issues with likes count
+        const { data, error } = await supabase
+          .from("issues")
+          .select(
+            `
+            *,
+            profiles:user_id(name),
+            likes:likes(id)
+          `
+          )
+          .or("status.eq.Completed,status.eq.In Progress")
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
 
-        console.log("Fetched filtered issues:", data);
+        // Process the data to include like counts
+        const processedIssues = data.map((issue) => ({
+          ...issue,
+          likeCount: issue.likes ? issue.likes.length : 0,
+          // Remove the likes array to avoid unnecessary data
+          likes: undefined,
+        }));
 
-        // Set the top issues (most recently approved/completed)
-        const topThreeIssues = data?.slice(0, 3) || [];
-        setTopIssues(topThreeIssues);
-
-        // Set all issues for the newly added section
-        setNewlyAddedIssues(data || []);
-        setFilteredNewlyAddedIssues(data || []);
+        setIssues(processedIssues);
       } catch (err) {
         console.error("Error fetching issues:", err);
         setError("Failed to load reports. Please try again.");
@@ -149,15 +159,16 @@ const Dashboard = () => {
       }
     }
 
-    fetchApprovedOrCompletedIssues();
+    fetchDashboardData();
   }, []);
 
-  const handleImageError = (e) => {
+  // Memoized handler functions
+  const handleImageError = useCallback((e) => {
     e.target.src = PLACEHOLDER_IMAGE;
     e.target.onerror = null;
-  };
+  }, []);
 
-  const formatTimeAgo = (dateString) => {
+  const formatTimeAgo = useCallback((dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.round((now - date) / 1000);
@@ -169,31 +180,38 @@ const Dashboard = () => {
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     return `${days}d`;
-  };
+  }, []);
 
-  const handleSearch = (searchTerm) => {
+  const handleSearch = useCallback((term) => {
+    setSearchTerm(term);
+  }, []);
+
+  // Memoized derived state
+  const filteredIssues = useMemo(() => {
     if (!searchTerm || searchTerm.trim() === "") {
-      setFilteredNewlyAddedIssues(newlyAddedIssues); // Reset to all newly added issues
-      return;
+      return issues;
     }
+
     const searchLower = searchTerm.toLowerCase();
-    const filtered = newlyAddedIssues.filter(
+    return issues.filter(
       (issue) =>
         issue.title?.toLowerCase().includes(searchLower) ||
         issue.description?.toLowerCase().includes(searchLower) ||
         issue.location?.toLowerCase().includes(searchLower) ||
         (issue.profiles?.name && issue.profiles.name.toLowerCase().includes(searchLower))
     );
-    setFilteredNewlyAddedIssues(filtered);
-  };
+  }, [issues, searchTerm]);
+
+  // Memoized top issues
+  const topIssues = useMemo(() => {
+    return [...issues].sort((a, b) => b.likeCount - a.likeCount).slice(0, 3);
+  }, [issues]);
 
   return (
     <div className="min-h-screen bg-gray-100 md:pb-0">
-      {" "}
-      {/* Changed bg to gray-100 for better contrast with cards */}
       <Navbar />
       <Header
-        title="Reports Feed"
+        title="Community Reports"
         onSearch={handleSearch}
       />
       <main className="flex flex-col md:flex-row max-w-screen-xl mx-auto gap-6 p-4 ">
@@ -216,9 +234,9 @@ const Dashboard = () => {
           <>
             {/* Left Side: Newly Added Reports */}
             <div className="w-full md:w-2/3 order-2 md:order-1">
-              {filteredNewlyAddedIssues.length > 0 ? (
+              {filteredIssues.length > 0 ? (
                 <NewlyAddedReports
-                  issues={filteredNewlyAddedIssues}
+                  issues={filteredIssues}
                   navigate={navigate}
                   formatTimeAgo={formatTimeAgo}
                   handleImageError={handleImageError}

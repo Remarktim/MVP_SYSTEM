@@ -1,5 +1,5 @@
 // src/pages/Profile.jsx - Enhanced to properly display and edit user name and phone number
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 import { useAuth } from "../hooks/useAuth";
 // eslint-disable-next-line no-unused-vars
@@ -19,6 +19,7 @@ const Profile = () => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const profileFetched = useRef(false);
 
   // User profile state
   const [profile, setProfile] = useState({
@@ -42,18 +43,17 @@ const Profile = () => {
 
   // Load user profile on component mount
   useEffect(() => {
-    const getProfile = async () => {
-      if (!user) return;
+    // Skip if profile already fetched or no user
+    if (!user || profileFetched.current) return;
 
+    const getProfile = async () => {
       try {
         setLoading(true);
+
+        // Flag to prevent repeated fetching
+        profileFetched.current = true;
+
         console.log("Loading profile for user:", user.id);
-        console.log("User auth data:", {
-          id: user.id,
-          email: user.email,
-          metadata: user.user_metadata,
-          app_metadata: user.app_metadata,
-        });
 
         // First get profile data from the profiles table
         const { data: profileData, error: profileError } = await supabase.from("profiles").select("*").eq("id", user.id).single();
@@ -62,7 +62,10 @@ const Profile = () => {
           console.error("Error fetching profile from database:", profileError);
         }
 
-        console.log("Profile data from DB:", profileData);
+        // Log only once
+        if (profileData) {
+          console.log("Profile data from DB:", profileData);
+        }
 
         // If profile exists in the database, use those values
         if (profileData) {
