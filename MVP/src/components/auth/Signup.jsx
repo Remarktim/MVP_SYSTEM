@@ -218,6 +218,15 @@ const Signup = () => {
     }
   };
 
+  const handleContactNumberChange = (e) => {
+    const { value } = e.target;
+    // Only allow numeric input and limit to 11 digits
+    const numericValue = value.replace(/\D/g, "");
+    if (numericValue.length <= 11) {
+      setFormData({ ...formData, contactNumber: numericValue });
+    }
+  };
+
   const checkEmailExists = async (email) => {
     if (!email || !email.includes("@")) return;
 
@@ -451,7 +460,8 @@ const Signup = () => {
                   className="w-full text-slate-800 text-sm border border-slate-300 px-4 py-3 rounded-md outline-indigo-600"
                   placeholder="Enter your contact number"
                   value={formData.contactNumber}
-                  onChange={handleChange}
+                  onChange={handleContactNumberChange}
+                  maxLength={11}
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
